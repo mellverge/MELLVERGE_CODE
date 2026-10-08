@@ -47,10 +47,10 @@ const productFeatures = [
 ];
 
 const plans = [
-  { name: 'Starter', price: '£19', description: 'For small businesses getting organised.', features: ['AI meeting summaries', 'Meeting organisation', 'Tasks', 'Reminders', 'Basic AI assistant', 'Core operations dashboard'] },
-  { name: 'Growth', price: '£59', description: 'For growing businesses ready to automate more.', featured: true, features: ['Everything in Starter', 'Unlimited meetings', 'Automatic action items', 'Follow-up management', 'Team task management', 'Business memory', 'Calendar integration', 'Email integration'] },
-  { name: 'Pro', price: '£129', description: 'For businesses ready to automate more of their operations.', features: ['Everything in Growth', 'Advanced AI automation', 'Advanced follow-ups', 'CRM integrations', 'Advanced business memory', 'Workflow automation', 'Team analytics'] },
-  { name: 'Plus', price: '£199', description: 'For businesses that want Mellverge managing more of their operations.', features: ['Everything in Pro', 'Advanced autonomous workflows', 'Multiple teams', 'Advanced reporting', 'Custom workflows', 'Full operations dashboard', 'Priority support'] },
+  { name: 'Starter', monthly: 19, description: 'For small businesses getting organised.', features: ['AI meeting summaries', 'Meeting organisation', 'Tasks', 'Reminders', 'Basic AI assistant', 'Core operations dashboard'] },
+  { name: 'Growth', monthly: 59, description: 'For growing businesses ready to automate more.', featured: true, features: ['Everything in Starter', 'Unlimited meetings', 'Automatic action items', 'Follow-up management', 'Team task management', 'Business memory', 'Calendar integration', 'Email integration'] },
+  { name: 'Pro', monthly: 129, description: 'For businesses ready to automate more of their operations.', features: ['Everything in Growth', 'Advanced AI automation', 'Advanced follow-ups', 'CRM integrations', 'Advanced business memory', 'Workflow automation', 'Team analytics'] },
+  { name: 'Plus', monthly: 199, description: 'For businesses that want Mellverge managing more of their operations.', features: ['Everything in Pro', 'Advanced autonomous workflows', 'Multiple teams', 'Advanced reporting', 'Custom workflows', 'Full operations dashboard', 'Priority support'] },
 ];
 
 const navItems: { route: AppRoute; label: string; icon: typeof Home }[] = [
@@ -176,7 +176,55 @@ function FeaturesPage() {
 }
 
 function PricingPage() {
-  return <main><section className="page-hero pricing-hero section-pad"><div className="eyebrow"><span className="eyebrow-dot" /> Simple pricing. Powerful operations.</div><h1>Start small.<br /><em>Scale with confidence.</em></h1><p>Choose the room you need today. Change plans as your business grows.</p><div className="billing-toggle"><span className="active">Monthly</span><span>Annual</span><small>Save 20%</small></div></section><section className="pricing-grid section-pad">{plans.map((plan) => <article className={`price-card ${plan.featured ? 'featured' : ''}`} key={plan.name}>{plan.featured && <div className="popular">Most popular</div>}<div className="price-top"><h3>{plan.name}</h3><p>{plan.description}</p></div><div className="price"><strong>{plan.price}</strong><span> / month</span></div><div className="price-detail">billed monthly · cancel any time</div><button className={`button ${plan.featured ? 'button-light' : 'button-outline'}`} onClick={() => goTo('signup')}>Start with {plan.name} <ArrowRight size={15} /></button><div className="price-features">{plan.features.map((feature) => <div key={feature}><Check size={14} /> {feature}</div>)}</div></article>)}</section><section className="pricing-note section-pad"><ShieldCheck size={20} /><p>No payments are connected yet. Pricing buttons take you to workspace setup. Need help choosing? <button onClick={() => goTo('signup')}>Start a conversation.</button></p></section></main>;
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
+
+  return (
+    <main>
+      <section className="page-hero pricing-hero section-pad">
+        <div className="eyebrow"><span className="eyebrow-dot" /> Simple pricing. Powerful operations.</div>
+        <h1>Start small.<br /><em>Scale with confidence.</em></h1>
+        <p>Choose the room you need today. Change plans as your business grows.</p>
+        <div className="billing-toggle">
+          <span className={billing === 'monthly' ? 'active' : ''} onClick={() => setBilling('monthly')} style={{ cursor: 'pointer' }}>Monthly</span>
+          <span className={billing === 'annual' ? 'active' : ''} onClick={() => setBilling('annual')} style={{ cursor: 'pointer' }}>Annual</span>
+          <small>Save 20%</small>
+        </div>
+      </section>
+      <section className="pricing-grid section-pad">
+        {plans.map((plan) => {
+          const priceNum = billing === 'annual' ? Math.round(plan.monthly * 12 * 0.8) : plan.monthly;
+          return (
+            <article className={`price-card ${plan.featured ? 'featured' : ''}`} key={plan.name}>
+              {plan.featured && <div className="popular">Most popular</div>}
+              <div className="price-top">
+                <h3>{plan.name}</h3>
+                <p>{plan.description}</p>
+              </div>
+              <div className="price">
+                <strong>£{priceNum}</strong>
+                <span> {billing === 'annual' ? ' / year' : ' / month'}</span>
+              </div>
+              <div className="price-detail">
+                {billing === 'annual' ? 'billed annually · save 20%' : 'billed monthly · cancel any time'}
+              </div>
+              <button className={`button ${plan.featured ? 'button-light' : 'button-outline'}`} onClick={() => goTo('signup')}>
+                Start with {plan.name} <ArrowRight size={15} />
+              </button>
+              <div className="price-features">
+                {plan.features.map((feature) => (
+                  <div key={feature}><Check size={14} /> {feature}</div>
+                ))}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+      <section className="pricing-note section-pad">
+        <ShieldCheck size={20} />
+        <p>No payments are connected yet. Pricing buttons take you to workspace setup. Need help choosing? <button onClick={() => goTo('signup')}>Start a conversation.</button></p>
+      </section>
+    </main>
+  );
 }
 
 function AboutPage() {
