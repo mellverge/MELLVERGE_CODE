@@ -1019,3 +1019,96 @@
   color: #50600c;
   flex: none;
 }
+
+/* =============================================================
+   COPILOT ASSISTANT SPECIFIC STYLES
+   ============================================================= */
+.copilot-hero-box {
+  text-align: center;
+  padding: 10px 0 20px;
+}
+.copilot-badge-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f2ec;
+  border: 1px solid #d0d5cb;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+.copilot-sparkle-icon {
+  color: #7b9c1d;
+}
+.copilot-hero-box h2 {
+  font-size: clamp(32px, 4vw, 44px);
+  letter-spacing: -0.06em;
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+.copilot-hero-box h2 em {
+  font-style: normal;
+  color: #68752c;
+}
+.copilot-subtext {
+  font-size: 13px;
+  color: #777;
+  margin: 0;
+}
+.copilot-mini-badge {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  background: #111;
+  color: #d9fb69;
+  border-radius: 50%;
+  flex: none;
+}
+.copilot-input-box-wrap {
+  margin-top: 15px;
+}
+.copilot-chat-input-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #cdd0c7;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+.copilot-chat-input-bar input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font: 13px Manrope;
+}
+.copilot-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #777;
+}
+.copilot-input-actions button {
+  background: transparent;
+  cursor: pointer;
+}
+.send-arrow-btn {
+  width: 28px;
+  height: 28px;
+  background: #111 !important;
+  color: #fff !important;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.copilot-disclaimer {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  color: #888;
+  margin-top: 8px;
+}
