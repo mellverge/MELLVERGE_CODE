@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, useRef, type FormEvent, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,10 +26,18 @@ import {
   Sparkles,
   Users,
   X,
+  Phone,
+  Video,
+  Mic,
+  MicOff,
+  VideoOff,
+  Send,
+  PhoneOff,
+  Volume2
 } from 'lucide-react';
 
 type PublicRoute = 'home' | 'features' | 'pricing' | 'about' | 'contact' | 'privacy' | 'terms' | 'security' | 'login' | 'signup' | 'onboarding';
-type AppRoute = 'dashboard' | 'meetings' | 'tasks' | 'follow-ups' | 'calendar' | 'team' | 'assistant' | 'memory' | 'settings' | 'billing';
+type AppRoute = 'dashboard' | 'meetings' | 'tasks' | 'follow-ups' | 'calendar' | 'team' | 'assistant' | 'memory' | 'settings' | 'billing' | 'chat';
 type Route = PublicRoute | AppRoute;
 
 let goTo: (route: Route) => void = () => undefined;
@@ -56,6 +64,7 @@ const plans = [
 const navItems: { route: AppRoute; label: string; icon: typeof Home }[] = [
   { route: 'dashboard', label: 'Dashboard', icon: Home },
   { route: 'meetings', label: 'Meetings', icon: MessageSquareText },
+  { route: 'chat', label: 'Chat & Comms', icon: MessageSquareText },
   { route: 'tasks', label: 'Tasks', icon: ListChecks },
   { route: 'follow-ups', label: 'Follow-ups', icon: Users },
   { route: 'calendar', label: 'Calendar', icon: CalendarDays },
@@ -88,42 +97,25 @@ function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  // Show cookie banner after 5 seconds if not handled yet
   useEffect(() => {
     const timer = setTimeout(() => {
       const stored = localStorage.getItem('marlow_cookie_consent');
-      if (!stored) {
-        setCookieState('banner');
-      }
+      if (!stored) setCookieState('banner');
     }, 5000);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleAcceptAll = () => {
-    localStorage.setItem('marlow_cookie_consent', 'accepted_all');
-    setCookieState('hidden');
-  };
-
-  const handleRejectAll = () => {
-    localStorage.setItem('marlow_cookie_consent', 'rejected_all');
-    setCookieState('hidden');
-  };
-
-  const handleSavePreferences = () => {
-    localStorage.setItem('marlow_cookie_consent', 'custom');
-    setCookieState('hidden');
-  };
+  const handleAcceptAll = () => { localStorage.setItem('marlow_cookie_consent', 'accepted_all'); setCookieState('hidden'); };
+  const handleRejectAll = () => { localStorage.setItem('marlow_cookie_consent', 'rejected_all'); setCookieState('hidden'); };
+  const handleSavePreferences = () => { localStorage.setItem('marlow_cookie_consent', 'custom'); setCookieState('hidden'); };
 
   return (
     <div className="site-shell">
       {isAppRoute(route) ? <AppShell route={route} /> : route === 'login' || route === 'signup' ? <AuthPage mode={route} /> : route === 'onboarding' ? <Onboarding /> : <Marketing route={route} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} />}
       
-      {/* Cookie Banner */}
       {cookieState === 'banner' && (
         <div className="cookie-banner">
-          <div className="cookie-content">
-            <p>By clicking <strong>Accept all cookies</strong>, you allow Marlow to store cookies on your device to optimize site performance, analyze usage trends, and tailor our marketing outreach. You can customize your preferences anytime by choosing <u>Manage cookies</u>.</p>
-          </div>
+          <div className="cookie-content"><p>By clicking <strong>Accept all cookies</strong>, you allow Marlow to store cookies on your device to optimize site performance, analyze usage trends, and tailor our marketing outreach. You can customize your preferences anytime by choosing <u>Manage cookies</u>.</p></div>
           <div className="cookie-actions">
             <button className="button button-light cookie-btn" onClick={handleAcceptAll}>Accept all cookies</button>
             <button className="button button-light cookie-btn" onClick={handleRejectAll}>Reject All</button>
@@ -132,38 +124,18 @@ function App() {
         </div>
       )}
 
-      {/* Cookie Management Modal */}
       {cookieState === 'manage' && (
         <div className="cookie-modal-backdrop">
           <div className="cookie-modal">
-            <div className="cookie-modal-header">
-              <h3>Cookies settings</h3>
-              <button onClick={() => setCookieState('banner')}><X size={18} /></button>
-            </div>
-            <p className="cookie-modal-desc">When you visit Marlow, we may store or retrieve information on your browser through cookies. This helps the site operate as expected, remember your preferences, and deliver a personalized experience. You can toggle specific categories below.</p>
-            
+            <div className="cookie-modal-header"><h3>Cookies settings</h3><button onClick={() => setCookieState('banner')}><X size={18} /></button></div>
+            <p className="cookie-modal-desc">When you visit Marlow, we may store or retrieve information on your browser through cookies. This helps the site operate as expected, remember your preferences, and deliver a personalized experience.</p>
             <div className="cookie-category-list">
-              <div className="cookie-category-row">
-                <span><b>Marketing cookies</b><small>Used to deliver relevant ads and measure campaigns.</small></span>
-                <button className={`toggle ${marketingCookies ? 'on' : ''}`} onClick={() => setMarketingCookies(!marketingCookies)}><span /></button>
-              </div>
-              <div className="cookie-category-row">
-                <span><b>Analytics / performance cookies</b><small>Helps us understand how visitors interact with our site.</small></span>
-                <button className={`toggle ${analyticsCookies ? 'on' : ''}`} onClick={() => setAnalyticsCookies(!analyticsCookies)}><span /></button>
-              </div>
-              <div className="cookie-category-row">
-                <span><b>Essential cookies</b><small>Required for core website security, network management, and accessibility.</small></span>
-                <span className="always-active">Always active</span>
-              </div>
+              <div className="cookie-category-row"><span><b>Marketing cookies</b><small>Used to deliver relevant ads and measure campaigns.</small></span><button className={`toggle ${marketingCookies ? 'on' : ''}`} onClick={() => setMarketingCookies(!marketingCookies)}><span /></button></div>
+              <div className="cookie-category-row"><span><b>Analytics / performance cookies</b><small>Helps us understand how visitors interact with our site.</small></span><button className={`toggle ${analyticsCookies ? 'on' : ''}`} onClick={() => setAnalyticsCookies(!analyticsCookies)}><span /></button></div>
+              <div className="cookie-category-row"><span><b>Essential cookies</b><small>Required for core website security and accessibility.</small></span><span className="always-active">Always active</span></div>
             </div>
-
-            <div className="cookie-modal-actions">
-              <button className="button button-outline" onClick={handleRejectAll}>Reject All</button>
-              <button className="button button-dark" onClick={handleSavePreferences}>Confirm my choices</button>
-            </div>
-            <div className="cookie-modal-footer">
-              <span>Powered by <strong>Marlow Privacy</strong></span>
-            </div>
+            <div className="cookie-modal-actions"><button className="button button-outline" onClick={handleRejectAll}>Reject All</button><button className="button button-dark" onClick={handleSavePreferences}>Confirm my choices</button></div>
+            <div className="cookie-modal-footer"><span>Powered by <strong>Marlow Privacy</strong></span></div>
           </div>
         </div>
       )}
@@ -177,7 +149,7 @@ function readRoute(): Route {
 }
 
 function isAppRoute(route: Route): route is AppRoute {
-  return ['dashboard', 'meetings', 'tasks', 'follow-ups', 'calendar', 'team', 'assistant', 'memory', 'settings', 'billing'].includes(route);
+  return ['dashboard', 'meetings', 'tasks', 'follow-ups', 'calendar', 'team', 'assistant', 'memory', 'settings', 'billing', 'chat'].includes(route);
 }
 
 function Marketing({ route, mobileMenu, setMobileMenu }: { route: PublicRoute; mobileMenu: boolean; setMobileMenu: (open: boolean) => void }) {
@@ -369,7 +341,7 @@ function PrivacyPage() { return <LegalPage kind="privacy" />; }
 function TermsPage() { return <LegalPage kind="terms" />; }
 function SecurityPage() {
   const sections = [['Data Protection', 'Marlow is designed with security and privacy in mind. Access to business information should be limited to the people and systems that need it.'], ['Account Security', 'User accounts are designed to use secure authentication and access controls.'], ['Data Isolation', "Business workspaces are designed so that one company's information is not accessible to another company's users."], ['Third-Party Services', 'Marlow may use trusted infrastructure and service providers to operate parts of the platform. These services are selected with security and reliability in mind.'], ['Security Development', 'We continuously improve the security of Marlow as the platform develops.'], ['Report a Security Concern', 'If you believe you have discovered a security issue affecting Marlow, please contact us through the Contact page with as much relevant information as possible.']];
-  return <main className="security-page"><section className="page-hero section-pad editorial-hero"><div className="eyebrow"><span className="eyebrow-dot" /> Security</div><h1>Security at<br /><em>Marlow.</em></h1><p>Your business information deserves to be protected.</p></section><section className="security-grid section-pad"><div className="security-intro"><div className="security-symbol"><ShieldCheck size={28} /></div><h2>Designed with<br /><em>care.</em></h2><p>Security is part of how Marlow is being built, not a layer added at the end.</p></div><div className="security-sections">{sections.map(([title, body], index) => <article key={title}><span>0{index + 1}</span><div><h3>{title}</h3><p>{body}</p></div></article>)}</div></section></main>;
+  return <main className="security-page"><section className="page-hero section-pad editorial-hero"><div className="eyebrow"><span className="eyebrow-dot" /> Security</div><h1>Security at<br /><em>Marlow.</em></h1><p>Your business information deserves to be protected.</p></section><section className="security-grid section-pad"><div className="security-intro"><div className="security-symbol"><ShieldCheck size={28} /></div><h2>Designed with<br /><em>care.</em></h2><p>Security is part of how Marlow is being built, not a layer added at the end.</p></div><div className="security-sections">{sections.map(([title, body], index) => <article key={title}><span>0{index + 1}</span><div><h3>{title}</h3><p>{body}</p></div></article>)}</div></main>;
 }
 
 function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
@@ -404,6 +376,7 @@ function PageHeader({ label }: { label: string }) { return <div className="app-p
 function AppContent({ route }: { route: AppRoute }) {
   if (route === 'dashboard') return <DashboardView />;
   if (route === 'meetings') return <MeetingsView />;
+  if (route === 'chat') return <ChatCommsView />;
   if (route === 'tasks') return <TasksView />;
   if (route === 'follow-ups') return <FollowUpsView />;
   if (route === 'calendar') return <CalendarView />;
@@ -412,6 +385,138 @@ function AppContent({ route }: { route: AppRoute }) {
   if (route === 'memory') return <MemoryView />;
   if (route === 'settings') return <SettingsView />;
   return <BillingView />;
+}
+
+// -------------------------------------------------------------
+// CHAT, VIDEO CALL & VOICE CALL COMPONENT
+// -------------------------------------------------------------
+function ChatCommsView() {
+  const [activeTab, setActiveTab] = useState<'chat' | 'video' | 'voice'>('chat');
+  const [messages, setMessages] = useState([
+    { sender: 'Sam Okafor', text: 'Hey Jamie, have we finalized the agenda for the Q4 review meeting?', time: '09:12' },
+    { sender: 'Jamie Doyle', text: 'Working on it right now. Will drop the notes in shortly.', time: '09:15' },
+    { sender: 'Alex Kim', text: 'Let me know if you need any input on pipeline numbers.', time: '09:18' }
+  ]);
+  const [inputMsg, setInputMsg] = useState('');
+
+  // Video call states
+  const [inVideoCall, setInVideoCall] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(false);
+  const [audioMuted, setAudioMuted] = useState(false);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Voice call states
+  const [inVoiceCall, setInVoiceCall] = useState(false);
+  const [voiceMuted, setVoiceMuted] = useState(false);
+
+  useEffect(() => {
+    if (inVideoCall) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
+        })
+        .catch((err) => console.log('Webcam permission denied or unavailable:', err));
+    } else {
+      if (localVideoRef.current && localVideoRef.current.srcObject) {
+        const stream = localVideoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    }
+  }, [inVideoCall]);
+
+  const handleSend = (e: FormEvent) => {
+    e.preventDefault();
+    if (!inputMsg.trim()) return;
+    setMessages([...messages, { sender: 'Jamie Doyle', text: inputMsg, time: 'Just now' }]);
+    setInputMsg('');
+  };
+
+  return (
+    <div className="comms-container">
+      <div className="comms-toolbar">
+        <div className="segmented">
+          <button className={activeTab === 'chat' ? 'active' : ''} onClick={() => setActiveTab('chat')}>Team Chat</button>
+          <button className={activeTab === 'video' ? 'active' : ''} onClick={() => setActiveTab('video')}>Video Meeting</button>
+          <button className={activeTab === 'voice' ? 'active' : ''} onClick={() => setActiveTab('voice')}>Voice Call</button>
+        </div>
+      </div>
+
+      {activeTab === 'chat' && (
+        <div className="chat-window">
+          <div className="chat-messages">
+            {messages.map((m, idx) => (
+              <div key={idx} className={`chat-bubble ${m.sender === 'Jamie Doyle' ? 'mine' : ''}`}>
+                <div className="chat-sender">{m.sender} <small>{m.time}</small></div>
+                <p>{m.text}</p>
+              </div>
+            ))}
+          </div>
+          <form className="chat-input-bar" onSubmit={handleSend}>
+            <input placeholder="Message team or colleagues..." value={inputMsg} onChange={(e) => setInputMsg(e.target.value)} />
+            <button type="submit" className="button button-dark"><Send size={15} /> Send</button>
+          </form>
+        </div>
+      )}
+
+      {activeTab === 'video' && (
+        <div className="video-meet-pane">
+          {!inVideoCall ? (
+            <div className="call-lobby">
+              <Video size={42} />
+              <h3>Start or Join Video Meeting</h3>
+              <p>Connect instantly with your team using your camera and microphone.</p>
+              <button className="button button-dark" onClick={() => setInVideoCall(true)}><Video size={16} /> Join Video Call</button>
+            </div>
+          ) : (
+            <div className="video-active-room">
+              <div className="video-grid-box">
+                <div className="video-tile">
+                  <video ref={localVideoRef} autoPlay playsInline muted={audioMuted} />
+                  <span className="video-username">Jamie Doyle (You)</span>
+                </div>
+                <div className="video-tile remote-tile">
+                  <div className="remote-avatar-placeholder">SO</div>
+                  <span className="video-username">Sam Okafor</span>
+                </div>
+              </div>
+              <div className="video-controls">
+                <button onClick={() => setAudioMuted(!audioMuted)} className={`control-btn ${audioMuted ? 'danger' : ''}`}>{audioMuted ? <MicOff size={18} /> : <Mic size={18} />}</button>
+                <button onClick={() => setVideoMuted(!videoMuted)} className={`control-btn ${videoMuted ? 'danger' : ''}`}>{videoMuted ? <VideoOff size={18} /> : <Video size={18} />}</button>
+                <button onClick={() => setInVideoCall(false)} className="control-btn hangup"><PhoneOff size={18} /></button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'voice' && (
+        <div className="voice-call-pane">
+          {!inVoiceCall ? (
+            <div className="call-lobby">
+              <Phone size={42} />
+              <h3>Team Audio Conference</h3>
+              <p>Start a secure voice-only call with your workspace teammates.</p>
+              <button className="button button-dark" onClick={() => setInVoiceCall(true)}><Phone size={16} /> Start Voice Call</button>
+            </div>
+          ) : (
+            <div className="voice-active-room">
+              <div className="voice-pulser">
+                <Volume2 size={40} />
+              </div>
+              <h3>Connected to Team Audio</h3>
+              <p>Sam Okafor and Alex Kim are in this call.</p>
+              <div className="voice-controls">
+                <button onClick={() => setVoiceMuted(!voiceMuted)} className={`control-btn ${voiceMuted ? 'danger' : ''}`}>{voiceMuted ? <MicOff size={18} /> : <Mic size={18} />}</button>
+                <button onClick={() => setInVoiceCall(false)} className="control-btn hangup"><PhoneOff size={18} /></button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function DashboardView() {
