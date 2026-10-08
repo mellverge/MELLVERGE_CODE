@@ -944,8 +944,113 @@ function TeamView() {
 
 function AssistantView() {
   const [question, setQuestion] = useState('');
-  const [asked, setAsked] = useState(false);
-  return <div className="assistant-layout"><div className="assistant-main"><div className="assistant-intro"><span className="assistant-symbol"><Sparkles size={20} /></span><div className="section-kicker">Product preview</div><h2>A clearer way to ask<br /><em>what happens next.</em></h2><p>Marlow will help you find the answer across your meetings, tasks, follow-ups and business memory.</p></div>{asked && <div className="assistant-message user-message">{question}</div>}{asked && <div className="assistant-message assistant-message"><Sparkles size={15} /><div><b>Here’s what I found in your workspace preview.</b><p>There are 3 commitments due this week, including the Acme renewal proposal. No connected AI is running yet, so this is only a product preview.</p></div></div>}<div className="assistant-prompts"><span>Try asking</span><button onClick={() => { setQuestion('What do I need to do today?'); setAsked(true); }}>What do I need to do today?</button><button onClick={() => { setQuestion('Which clients need follow-ups?'); setAsked(true); }}>Which clients need follow-ups?</button><button onClick={() => { setQuestion('What commitments are due this week?'); setAsked(true); }}>What commitments are due this week?</button></div><form className="assistant-input" onSubmit={(event) => { event.preventDefault(); if (question.trim()) setAsked(true); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask Marlow anything about your business" /><button type="submit"><ArrowRight size={17} /></button></form><small className="assistant-disclaimer">Marlow AI Assistant is a product preview. It is not connected to external services yet.</small></div><aside className="assistant-aside"><div className="section-kicker">Suggested view</div><h3>What is moving</h3><Insight text="3 commitments due this week" /><Insight text="2 follow-ups need attention" /><Insight text="1 overdue task" /></aside></div>;
+  const [messages, setMessages] = useState<Array<{ sender: 'user' | 'assistant'; text: string; subtext?: string }>>([
+    { 
+      sender: 'assistant', 
+      text: 'Hello! I am Copilot, your AI operations assistant for Marlow.', 
+      subtext: 'Ask me anything about your team conversations, tasks, meetings, or business workflows.' 
+    }
+  ]);
+
+  const handleAsk = (query: string) => {
+    if (!query.trim()) return;
+    const userQ = query.trim();
+    const newMessages = [...messages, { sender: 'user' as const, text: userQ }];
+    
+    // Check if query is related to business, tasks, meetings, or Marlow workspace
+    const lower = userQ.toLowerCase();
+    const isBusinessRelated = 
+      lower.includes('todo') || 
+      lower.includes('task') || 
+      lower.includes('meeting') || 
+      lower.includes('follow') || 
+      lower.includes('client') || 
+      lower.includes('proposal') || 
+      lower.includes('business') || 
+      lower.includes('marlow') || 
+      lower.includes('work') || 
+      lower.includes('team') || 
+      lower.includes('summary') || 
+      lower.includes('miss');
+
+    if (!isBusinessRelated) {
+      newMessages.push({
+        sender: 'assistant',
+        text: `Your question about "${userQ}" is outside my scope—I'm focused on helping you automate tasks and manage workflows across your Marlow workspace.`,
+        subtext: 'Is there something you would like to automate? I can help you:\n• Build a workflow to connect apps\n• Create a task or follow-up item\n• Summarize team conversations'
+      });
+    } else if (lower.includes('miss') || lower.includes('today')) {
+      newMessages.push({
+        sender: 'assistant',
+        text: 'Here is what needs your attention today:',
+        subtext: '• 3 commitments due this week, including the Acme renewal proposal.\n• 2 clients waiting for follow-up.\n• 1 unread mention from Sarah Jones in Sales.'
+      });
+    } else {
+      newMessages.push({
+        sender: 'assistant',
+        text: `I scanned your workspace memory for "${userQ}":`,
+        subtext: 'Found relevant records across Sales Team chat and shared files. All operations are currently on schedule.'
+      });
+    }
+
+    setMessages(newMessages);
+    setQuestion('');
+  };
+
+  return (
+    <div className="assistant-layout">
+      <div className="assistant-main">
+        <div className="copilot-hero-box">
+          <div className="copilot-badge-header">
+            <span className="copilot-sparkle-icon"><Sparkles size={16} /></span>
+            <b>Copilot</b>
+          </div>
+          <h2>What would you like to <em>automate?</em></h2>
+          <p className="copilot-subtext">Enter an idea, question, or app name to get started.</p>
+        </div>
+
+        <div className="assistant-chat-stream" style={{ display: 'grid', gap: '15px', margin: '25px 0', maxHeight: '350px', overflowY: 'auto' }}>
+          {messages.map((m, idx) => (
+            <div key={idx} className={`assistant-message-row ${m.sender}`} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', justifyContent: m.sender === 'user' ? 'flex-end' : 'flex-start' }}>
+              {m.sender === 'assistant' && (
+                <span className="copilot-mini-badge"><Sparkles size={13} /></span>
+              )}
+              <div className="assistant-bubble" style={{ background: m.sender === 'user' ? '#111' : '#e9f2c2', color: m.sender === 'user' ? '#fff' : '#444', padding: '14px 16px', borderRadius: '4px', maxWidth: '75%', border: '1px solid #d9ddd4' }}>
+                <b style={{ display: 'block', marginBottom: '4px' }}>{m.text}</b>
+                {m.subtext && <p style={{ margin: 0, fontSize: '11px', lineHeight: '1.5', whiteSpace: 'pre-line' }}>{m.subtext}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="assistant-prompts">
+          <span>Try asking</span>
+          <button onClick={() => handleAsk('What do I need to do today?')}>What do I need to do today?</button>
+          <button onClick={() => handleAsk('Which clients need follow-ups?')}>Which clients need follow-ups?</button>
+          <button onClick={() => handleAsk('Who is Mo Salah?')}>Who is Mo Salah?</button>
+        </div>
+
+        <div className="copilot-input-box-wrap">
+          <form className="copilot-chat-input-bar" onSubmit={(e) => { e.preventDefault(); handleAsk(question); }}>
+            <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Chat with Copilot..." />
+            <div className="copilot-input-actions">
+              <button type="button" aria-label="Voice input"><Mic size={15} /></button>
+              <button type="submit" aria-label="Send message" className="send-arrow-btn"><ArrowRight size={15} /></button>
+            </div>
+          </form>
+          <small className="copilot-disclaimer">Copilot is AI and can make mistakes. Please double-check responses.</small>
+        </div>
+      </div>
+
+      <aside className="assistant-aside">
+        <div className="section-kicker">Recommended for you</div>
+        <h3>Quick Actions</h3>
+        <Insight text="Build a workflow to connect apps" />
+        <Insight text="Create a Task to organize work" />
+        <Insight text="Summarize team conversation" />
+      </aside>
+    </div>
+  );
 }
 
 function MemoryView() {
