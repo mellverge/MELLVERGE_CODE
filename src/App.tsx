@@ -393,8 +393,96 @@ function SecurityPage() {
 function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
   const login = mode === 'login';
   const [sent, setSent] = useState(false);
+  const [isAppleModalOpen, setIsAppleModalOpen] = useState(false);
+  const appleLogoUrl = "public/F6B419A2-CC4C-4734-9D7A-CE043558BD14.png";
+
   const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setSent(true); };
-  return <div className="auth-shell"><aside className="auth-side"><Logo light /><div className="auth-statement"><span className="auth-logo-wrap"><img src="/IMG_1451.png" alt="Marlow logo" /></span><p>Your business,<br /><em>under control.</em></p></div><small>MARLOW / PRODUCT 001</small></aside><main className="auth-main"><button className="auth-back" onClick={() => goTo('home')}><ArrowLeft size={15} /> Back to site</button><div className="auth-form-wrap"><div className="section-kicker">{login ? 'Welcome back' : 'Start with Marlow'}</div><h1>{login ? 'Good to see you.' : 'Build a clearer day.'}</h1><p>{login ? 'Enter your details to continue to your workspace.' : 'Create your workspace and get your business under control.'}</p>{sent ? <div className="success-box"><Check size={20} /><b>{login ? 'You’re on your way in.' : 'Your workspace is ready to shape.'}</b><span>This preview keeps everything local for now. Continue to explore the product.</span><button className="button button-dark" onClick={() => goTo(login ? 'dashboard' : 'onboarding')}>Continue <ArrowRight size={15} /></button></div> : <form className="auth-form" onSubmit={submit}>{!login && <div className="form-two"><label>First name<input required placeholder="Jamie" /></label><label>Last name<input required placeholder="Doyle" /></label></div>}{!login && <label>Business name<input required placeholder="Your business" /></label>}<label>Work email<input required type="email" placeholder="you@company.com" /></label><label>Password<input required type="password" placeholder="At least 8 characters" /></label>{login && <button type="button" className="forgot">Forgot password?</button>}<button className="button button-dark full-button" type="submit">{login ? 'Log in' : 'Create account'} <ArrowRight size={15} /></button><div className="form-divider"><span>or continue with</span></div><button type="button" className="button button-social"><Command size={15} /> Continue with Google</button></form>}<p className="auth-switch">{login ? 'New to Marlow?' : 'Already have an account?'} <button onClick={() => goTo(login ? 'signup' : 'login')}>{login ? 'Create an account' : 'Log in'}</button></p></div></main></div>;
+  
+  return (
+    <div className="auth-shell">
+      <aside className="auth-side">
+        <Logo light />
+        <div className="auth-statement">
+          <span className="auth-logo-wrap"><img src="/IMG_1451.png" alt="Marlow logo" /></span>
+          <p>Your business,<br /><em>under control.</em></p>
+        </div>
+        <small>MARLOW / PRODUCT 001</small>
+      </aside>
+      <main className="auth-main">
+        <button className="auth-back" onClick={() => goTo('home')}><ArrowLeft size={15} /> Back to site</button>
+        <div className="auth-form-wrap">
+          <div className="section-kicker">{login ? 'Welcome back' : 'Start with Marlow'}</div>
+          <h1>{login ? 'Good to see you.' : 'Build a clearer day.'}</h1>
+          <p>{login ? 'Enter your details to continue to your workspace.' : 'Create your workspace and get your business under control.'}</p>
+          
+          {sent ? (
+            <div className="success-box">
+              <Check size={20} />
+              <b>{login ? 'You’re on your way in.' : 'Your workspace is ready to shape.'}</b>
+              <span>This preview keeps everything local for now. Continue to explore the product.</span>
+              <button className="button button-dark" onClick={() => goTo(login ? 'dashboard' : 'onboarding')}>Continue <ArrowRight size={15} /></button>
+            </div>
+          ) : (
+            <form className="auth-form" onSubmit={submit}>
+              {!login && <div className="form-two"><label>First name<input required placeholder="Jamie" /></label><label>Last name<input required placeholder="Doyle" /></label></div>}
+              {!login && <label>Business name<input required placeholder="Your business" /></label>}
+              <label>Work email<input required type="email" placeholder="you@company.com" /></label>
+              <label>Password<input required type="password" placeholder="At least 8 characters" /></label>
+              {login && <button type="button" className="forgot">Forgot password?</button>}
+              <button className="button button-dark full-button" type="submit">{login ? 'Log in' : 'Create account'} <ArrowRight size={15} /></button>
+              
+              <div className="form-divider"><span>or continue with</span></div>
+              
+              <button type="button" className="button button-social"><Command size={15} /> Continue with Google</button>
+              
+              {/* Added Continue with Apple button */}
+              <button type="button" className="button button-social" onClick={() => setIsAppleModalOpen(true)}>
+                <svg width="16" height="16" viewBox="0 0 170 170" fill="currentColor">
+                  <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.1-1.9-14.24-6.08-3.05-2.61-6.9-7.23-11.55-13.86-6.13-8.75-10.9-18.36-14.31-28.84-3.41-10.49-5.12-20.61-5.12-30.37 0-14.33 3.66-26.04 10.98-35.13 7.32-9.09 16.63-13.72 27.93-13.89 4.13 0 9.07 1.15 14.83 3.46 5.76 2.31 9.53 3.47 11.3 3.47 1.41 0 5.25-1.23 11.52-3.69 6.27-2.46 11.33-3.6 15.18-3.41 12.33.65 22.04 5.37 29.13 14.17-10.95 6.64-16.32 15.65-16.11 27.02.22 9.07 3.86 16.63 10.91 22.69 5.86 5.06 13.06 7.92 21.6 8.58-2.62 7.78-6.13 15.86-10.53 24.24zM119.22 31.85c0-6.62 2.42-12.78 7.27-18.49 4.84-5.71 10.9-9.11 18.17-10.2 0 1.09-.08 2.14-.24 3.15-.16 1.02-.42 2.04-.79 3.07-3.62 10.13-9.17 17.58-16.65 22.34-4.84 3.12-9.72 4.79-14.63 5.01-.11-.96-.13-1.93-.13-2.88z"/>
+                </svg>
+                Continue with Apple
+              </button>
+            </form>
+          )}
+
+          <p className="auth-switch">{login ? 'New to Marlow?' : 'Already have an account?'} <button onClick={() => goTo(login ? 'signup' : 'login')}>{login ? 'Create an account' : 'Log in'}</button></p>
+        </div>
+      </main>
+
+      {/* Sign in with Apple Modal */}
+      {isAppleModalOpen && (
+        <div className="apple-signin-modal-backdrop" onClick={() => setIsAppleModalOpen(false)}>
+          <div className="apple-signin-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="apple-modal-header">
+              <h3>Sign in with Apple</h3>
+              <button className="apple-close-btn" onClick={() => setIsAppleModalOpen(false)}>✕</button>
+            </div>
+
+            <div className="apple-app-intro">
+              <img src={appleLogoUrl} alt="Marlow Logo" className="apple-app-logo" />
+              <p>Sign in to <strong>Marlow</strong> using your Apple Account.</p>
+            </div>
+
+            <div className="apple-account-card" onClick={() => { setIsAppleModalOpen(false); goTo('dashboard'); }}>
+              <div className="apple-account-avatar">MO</div>
+              <div className="apple-account-info">
+                <b>Michael Onuegbu</b>
+                <small>Your account</small>
+              </div>
+            </div>
+
+            <button className="apple-signin-btn" onClick={() => { setIsAppleModalOpen(false); goTo('dashboard'); }}>
+              Sign In
+            </button>
+
+            <button className="apple-alt-link" onClick={() => alert('Switch Apple Account flow triggered')}>
+              Use a different Apple Account
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function Onboarding() {
@@ -1071,6 +1159,6 @@ function IntegrationRow({ name, detail }: { name: string; detail: string }) { re
 function BillingView() { return <><div className="billing-intro"><div><div className="section-kicker">Current plan</div><h2>Growth</h2><p>£59 / month · no payment connected</p></div><button className="button button-dark" onClick={() => goTo('pricing')}>Compare plans <ArrowRight size={15} /></button></div><div className="billing-grid"><div className="billing-card"><div className="section-kicker">Workspace usage</div><h3>Good room to grow.</h3><Usage label="Meetings" value="18 / unlimited" progress={42} /><Usage label="Team members" value="4 / unlimited" progress={22} /><Usage label="Business memory" value="38 entries" progress={38} /></div><div className="billing-card billing-note"><ShieldCheck size={20} /><h3>Payments are not connected</h3><p>This preview shows the place where plan details, invoices and payment settings will live when billing is enabled.</p><button className="text-button" onClick={() => goTo('pricing')}>View all plans <ArrowRight size={15} /></button></div></div></>; }
 function Usage({ label, value, progress }: { label: string; value: string; progress: number }) { return <div className="usage"><div><span>{label}</span><b>{value}</b></div><i><span style={{ width: `${progress}%` }} /></i></div>; }
 
-function MarketingFooter() { return <footer className="site-footer"><div><Logo /><p>Your business,<br />under control.</p></div><div className="footer-links"><div><b>Product</b><button onClick={() => goTo('features')}>Features</button><button onClick={() => goTo('security')}>Security</button></div><div><b>Company</b><button onClick={() => goTo('about')}>About</button><button onClick={() => goTo('contact')}>Contact</button></div><div><b>Legal</b><button onClick={() => goTo('privacy')}>Privacy</button><button onClick={() => goTo('terms')}>Terms</button></div></div><div className="footer-end"><span>© 2026 Marlow. All rights reserved.</span><span>Made for businesses in motion.</span></div></footer>; }
+function MarketingFooter() { return <footer className="site-footer"><div><Logo /><p>Your business,<br />under control.</p></div><div className="footer-links"><div><b>Product</b><button onClick={() => goTo('features')}>Features</button><button onClick={() => goTo('security')}>Security</button></div><div><b>Company</b><button onClick={() => goTo('about')}>About</button><button onClick={() => goTo('contact')}>Contact</button></div><div><b>Legal</b><button onClick={() => goTo('privacy')}>Privacy</button><button onClick={() => goTo('terms')}>Terms</button></div></div><div className="footer-end">© 2026 Marlow. All rights reserved. Made for businesses in motion.</div></footer>; }
 
 export default App;
