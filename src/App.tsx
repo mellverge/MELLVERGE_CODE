@@ -339,9 +339,44 @@ function LegalPage({ kind }: { kind: 'privacy' | 'terms' }) {
 
 function PrivacyPage() { return <LegalPage kind="privacy" />; }
 function TermsPage() { return <LegalPage kind="terms" />; }
+
 function SecurityPage() {
-  const sections = [['Data Protection', 'Marlow is designed with security and privacy in mind. Access to business information should be limited to the people and systems that need it.'], ['Account Security', 'User accounts are designed to use secure authentication and access controls.'], ['Data Isolation', "Business workspaces are designed so that one company's information is not accessible to another company's users."], ['Third-Party Services', 'Marlow may use trusted infrastructure and service providers to operate parts of the platform. These services are selected with security and reliability in mind.'], ['Security Development', 'We continuously improve the security of Marlow as the platform develops.'], ['Report a Security Concern', 'If you believe you have discovered a security issue affecting Marlow, please contact us through the Contact page with as much relevant information as possible.']];
-  return <main className="security-page"><section className="page-hero section-pad editorial-hero"><div className="eyebrow"><span className="eyebrow-dot" /> Security</div><h1>Security at<br /><em>Marlow.</em></h1><p>Your business information deserves to be protected.</p></section><section className="security-grid section-pad"><div className="security-intro"><div className="security-symbol"><ShieldCheck size={28} /></div><h2>Designed with<br /><em>care.</em></h2><p>Security is part of how Marlow is being built, not a layer added at the end.</p></div><div className="security-sections">{sections.map(([title, body], index) => <article key={title}><span>0{index + 1}</span><div><h3>{title}</h3><p>{body}</p></div></article>)}</div></main>;
+  const sections = [
+    ['Data Protection', 'Marlow is designed with security and privacy in mind. Access to business information should be limited to the people and systems that need it.'], 
+    ['Account Security', 'User accounts are designed to use secure authentication and access controls.'], 
+    ['Data Isolation', "Business workspaces are designed so that one company's information is not accessible to another company's users."], 
+    ['Third-Party Services', 'Marlow may use trusted infrastructure and service providers to operate parts of the platform. These services are selected with security and reliability in mind.'], 
+    ['Security Development', 'We continuously improve the security of Marlow as the platform develops.'], 
+    ['Report a Security Concern', 'If you believe you have discovered a security issue affecting Marlow, please contact us through the Contact page with as much relevant information as possible.']
+  ];
+
+  return (
+    <main className="security-page">
+      <section className="page-hero section-pad editorial-hero">
+        <div className="eyebrow"><span className="eyebrow-dot" /> Security</div>
+        <h1>Security at<br /><em>Marlow.</em></h1>
+        <p>Your business information deserves to be protected.</p>
+      </section>
+      <section className="security-grid section-pad">
+        <div className="security-intro">
+          <div className="security-symbol"><ShieldCheck size={28} /></div>
+          <h2>Designed with<br /><em>care.</em></h2>
+          <p>Security is part of how Marlow is being built, not a layer added at the end.</p>
+        </div>
+        <div className="security-sections">
+          {sections.map(([title, body], index) => (
+            <article key={title}>
+              <span>0{index + 1}</span>
+              <div>
+                <h3>{title}</h3>
+                <p>{body}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
 }
 
 function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
