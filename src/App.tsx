@@ -71,6 +71,9 @@ function Logo({ light = false }: { light?: boolean }) {
 function App() {
   const [route, setRoute] = useState<Route>(() => readRoute());
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [cookieState, setCookieState] = useState<'hidden' | 'banner' | 'manage'>('hidden');
+  const [marketingCookies, setMarketingCookies] = useState(false);
+  const [analyticsCookies, setAnalyticsCookies] = useState(true);
 
   goTo = (next: Route) => {
     setRoute(next);
@@ -85,10 +88,87 @@ function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  if (isAppRoute(route)) return <AppShell route={route} />;
-  if (route === 'login' || route === 'signup') return <AuthPage mode={route} />;
-  if (route === 'onboarding') return <Onboarding />;
-  return <Marketing route={route} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} />;
+  // Show cookie banner after 5 seconds if not handled yet
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const stored = localStorage.getItem('marlow_cookie_consent');
+      if (!stored) {
+        setCookieState('banner');
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleAcceptAll = () => {
+    localStorage.setItem('marlow_cookie_consent', 'accepted_all');
+    setCookieState('hidden');
+  };
+
+  const handleRejectAll = () => {
+    localStorage.setItem('marlow_cookie_consent', 'rejected_all');
+    setCookieState('hidden');
+  };
+
+  const handleSavePreferences = () => {
+    localStorage.setItem('marlow_cookie_consent', 'custom');
+    setCookieState('hidden');
+  };
+
+  return (
+    <div className="site-shell">
+      {isAppRoute(route) ? <AppShell route={route} /> : route === 'login' || route === 'signup' ? <AuthPage mode={route} /> : route === 'onboarding' ? <Onboarding /> : <Marketing route={route} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} />}
+      
+      {/* Cookie Banner */}
+      {cookieState === 'banner' && (
+        <div className="cookie-banner">
+          <div className="cookie-content">
+            <p>By clicking <strong>Accept all cookies</strong>, you allow Marlow to store cookies on your device to optimize site performance, analyze usage trends, and tailor our marketing outreach. You can customize your preferences anytime by choosing <u>Manage cookies</u>.</p>
+          </div>
+          <div className="cookie-actions">
+            <button className="button button-light cookie-btn" onClick={handleAcceptAll}>Accept all cookies</button>
+            <button className="button button-light cookie-btn" onClick={handleRejectAll}>Reject All</button>
+            <button className="cookie-manage-link" onClick={() => setCookieState('manage')}>Manage cookies</button>
+          </div>
+        </div>
+      )}
+
+      {/* Cookie Management Modal */}
+      {cookieState === 'manage' && (
+        <div className="cookie-modal-backdrop">
+          <div className="cookie-modal">
+            <div className="cookie-modal-header">
+              <h3>Cookies settings</h3>
+              <button onClick={() => setCookieState('banner')}><X size={18} /></button>
+            </div>
+            <p className="cookie-modal-desc">When you visit Marlow, we may store or retrieve information on your browser through cookies. This helps the site operate as expected, remember your preferences, and deliver a personalized experience. You can toggle specific categories below.</p>
+            
+            <div className="cookie-category-list">
+              <div className="cookie-category-row">
+                <span><b>Marketing cookies</b><small>Used to deliver relevant ads and measure campaigns.</small></span>
+                <button className={`toggle ${marketingCookies ? 'on' : ''}`} onClick={() => setMarketingCookies(!marketingCookies)}><span /></button>
+              </div>
+              <div className="cookie-category-row">
+                <span><b>Analytics / performance cookies</b><small>Helps us understand how visitors interact with our site.</small></span>
+                <button className={`toggle ${analyticsCookies ? 'on' : ''}`} onClick={() => setAnalyticsCookies(!analyticsCookies)}><span /></button>
+              </div>
+              <div className="cookie-category-row">
+                <span><b>Essential cookies</b><small>Required for core website security, network management, and accessibility.</small></span>
+                <span className="always-active">Always active</span>
+              </div>
+            </div>
+
+            <div className="cookie-modal-actions">
+              <button className="button button-outline" onClick={handleRejectAll}>Reject All</button>
+              <button className="button button-dark" onClick={handleSavePreferences}>Confirm my choices</button>
+            </div>
+            <div className="cookie-modal-footer">
+              <span>Powered by <strong>Marlow Privacy</strong></span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function readRoute(): Route {
