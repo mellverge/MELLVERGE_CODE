@@ -33,7 +33,18 @@ import {
   VideoOff,
   Send,
   PhoneOff,
-  Volume2
+  Volume2,
+  Hash,
+  Pin,
+  Bookmark,
+  Share2,
+  Smile,
+  Paperclip,
+  AtSign,
+  Filter,
+  Eye,
+  Lock,
+  Globe
 } from 'lucide-react';
 
 type PublicRoute = 'home' | 'features' | 'pricing' | 'about' | 'contact' | 'privacy' | 'terms' | 'security' | 'login' | 'signup' | 'onboarding';
@@ -64,7 +75,7 @@ const plans = [
 const navItems: { route: AppRoute; label: string; icon: typeof Home }[] = [
   { route: 'dashboard', label: 'Dashboard', icon: Home },
   { route: 'meetings', label: 'Meetings', icon: MessageSquareText },
-  { route: 'chat', label: 'Chat & Comms', icon: MessageSquareText },
+  { route: 'chat', label: 'Chat & Workspace', icon: MessageSquareText },
   { route: 'tasks', label: 'Tasks', icon: ListChecks },
   { route: 'follow-ups', label: 'Follow-ups', icon: Users },
   { route: 'calendar', label: 'Calendar', icon: CalendarDays },
@@ -411,7 +422,7 @@ function PageHeader({ label }: { label: string }) { return <div className="app-p
 function AppContent({ route }: { route: AppRoute }) {
   if (route === 'dashboard') return <DashboardView />;
   if (route === 'meetings') return <MeetingsView />;
-  if (route === 'chat') return <ChatCommsView />;
+  if (route === 'chat') return <ChatWorkspaceView />;
   if (route === 'tasks') return <TasksView />;
   if (route === 'follow-ups') return <FollowUpsView />;
   if (route === 'calendar') return <CalendarView />;
@@ -423,131 +434,468 @@ function AppContent({ route }: { route: AppRoute }) {
 }
 
 // -------------------------------------------------------------
-// CHAT, VIDEO CALL & VOICE CALL COMPONENT
+// ENHANCED MARLOW CHAT & COLLABORATION WORKSPACE
 // -------------------------------------------------------------
-function ChatCommsView() {
-  const [activeTab, setActiveTab] = useState<'chat' | 'video' | 'voice'>('chat');
-  const [messages, setMessages] = useState([
-    { sender: 'Sam Okafor', text: 'Hey Jamie, have we finalized the agenda for the Q4 review meeting?', time: '09:12' },
-    { sender: 'Jamie Doyle', text: 'Working on it right now. Will drop the notes in shortly.', time: '09:15' },
-    { sender: 'Alex Kim', text: 'Let me know if you need any input on pipeline numbers.', time: '09:18' }
+function ChatWorkspaceView() {
+  const [activeNavSection, setActiveNavSection] = useState<'chat' | 'people' | 'activity'>('chat');
+  const [chatTab, setChatTab] = useState<'dms' | 'groups' | 'channels'>('dms');
+  const [selectedConversation, setSelectedConversation] = useState<string>('Sarah Jones');
+  const [messageInput, setMessageInput] = useState('');
+  
+  // Section collapse states
+  const [collapseDMs, setCollapseDMs] = useState(false);
+  const [collapseGroups, setCollapseGroups] = useState(false);
+  const [collapseChannels, setCollapseChannels] = useState(false);
+
+  // Modal & action triggers
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskMsgContext, setTaskMsgContext] = useState('');
+  const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const [automationContext, setAutomationContext] = useState('');
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiQuery, setAiQuery] = useState('');
+  const [aiAnswer, setAiAnswer] = useState('');
+
+  // Group Workspace sub-tabs
+  const [groupWorkspaceTab, setGroupWorkspaceTab] = useState<'chat' | 'channels' | 'files' | 'tasks' | 'calendar' | 'members' | 'automations'>('chat');
+
+  // Presence and Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [userStatus, setUserStatus] = useState<'Available' | 'Away' | 'Busy' | 'Offline'>('Available');
+
+  // Thread panel
+  const [activeThreadMsg, setActiveThreadMsg] = useState<{ sender: string; text: string; time: string; replies: string[] } | null>(null);
+  const [threadReplyInput, setThreadReplyInput] = useState('');
+
+  // Demo state for messages
+  const [conversationsData, setConversationsData] = useState<Record<string, { sender: string; text: string; time: string; repliesCount?: number; pinned?: boolean }[]>>({
+    'Sarah Jones': [
+      { sender: 'Sarah Jones', text: 'Hey Jamie, the new website design is ready for final review.', time: '09:12' },
+      { sender: 'Jamie Doyle', text: 'Looks fantastic. Let make sure we send the proposal to John tomorrow.', time: '09:15' },
+      { sender: 'Sarah Jones', text: 'Will do! I have also uploaded the asset deck to the shared files.', time: '09:16', repliesCount: 2 }
+    ],
+    'James Smith': [
+      { sender: 'James Smith', text: 'API integration tests passed successfully on staging.', time: 'Yesterday' }
+    ],
+    'Emma Brown': [
+      { sender: 'Emma Brown', text: 'Updated the weekly operations schedule.', time: 'Oct 12' }
+    ],
+    'Sales Team': [
+      { sender: 'Daniel Wilson', text: 'New website enquiry came in from Apex Corp. Budget looks solid.', time: '10:04', repliesCount: 4 }
+    ],
+    'Marketing': [
+      { sender: 'Sophie Taylor', text: 'Q4 campaign brief is attached. Please review by Thursday.', time: 'Oct 11' }
+    ]
+  });
+
+  const [peopleList] = useState([
+    { name: 'Sarah Jones', role: 'Sales Manager', email: 'sarah@northstar.studio', status: 'Available', dept: 'Sales', phone: '+44 7700 900077' },
+    { name: 'James Smith', role: 'Senior Developer', email: 'james@northstar.studio', status: 'Busy', dept: 'Product', phone: '+44 7700 900088' },
+    { name: 'Emma Brown', role: 'Operations Lead', email: 'emma@northstar.studio', status: 'Available', dept: 'Operations', phone: '+44 7700 900099' },
+    { name: 'Daniel Wilson', role: 'Marketing Specialist', email: 'daniel@northstar.studio', status: 'Away', dept: 'Marketing', phone: '+44 7700 900111' },
+    { name: 'Sophie Taylor', role: 'Finance Director', email: 'sophie@northstar.studio', status: 'Offline', dept: 'Finance', phone: '+44 7700 900222' }
   ]);
-  const [inputMsg, setInputMsg] = useState('');
 
-  // Video call states
-  const [inVideoCall, setInVideoCall] = useState(false);
-  const [videoMuted, setVideoMuted] = useState(false);
-  const [audioMuted, setAudioMuted] = useState(false);
-  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [notificationsList, setNotificationsList] = useState([
+    { id: 1, type: 'mention', text: 'Sarah Jones mentioned you in #sales', time: '10 mins ago', read: false },
+    { id: 2, type: 'task', text: 'James Smith assigned you a task: Review API specs', time: '1 hour ago', read: false },
+    { id: 3, type: 'file', text: 'New file uploaded to Marketing: Q4_Brief.pdf', time: '3 hours ago', read: true },
+    { id: 4, type: 'automation', text: 'Automation triggered: New lead routed to Sales', time: 'Yesterday', read: true }
+  ]);
 
-  // Voice call states
-  const [inVoiceCall, setInVoiceCall] = useState(false);
-  const [voiceMuted, setVoiceMuted] = useState(false);
-
-  useEffect(() => {
-    if (inVideoCall) {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then((stream) => {
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-          }
-        })
-        .catch((err) => console.log('Webcam permission denied or unavailable:', err));
-    } else {
-      if (localVideoRef.current && localVideoRef.current.srcObject) {
-        const stream = localVideoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    }
-  }, [inVideoCall]);
-
-  const handleSend = (e: FormEvent) => {
+  const handleSendMessage = (e: FormEvent) => {
     e.preventDefault();
-    if (!inputMsg.trim()) return;
-    setMessages([...messages, { sender: 'Jamie Doyle', text: inputMsg, time: 'Just now' }]);
-    setInputMsg('');
+    if (!messageInput.trim()) return;
+    const currentList = conversationsData[selectedConversation] || [];
+    setConversationsData({
+      ...conversationsData,
+      [selectedConversation]: [...currentList, { sender: 'Jamie Doyle', text: messageInput, time: 'Just now' }]
+    });
+    setMessageInput('');
   };
 
-  return (
-    <div className="comms-container">
-      <div className="comms-toolbar">
-        <div className="segmented">
-          <button className={activeTab === 'chat' ? 'active' : ''} onClick={() => setActiveTab('chat')}>Team Chat</button>
-          <button className={activeTab === 'video' ? 'active' : ''} onClick={() => setActiveTab('video')}>Video Meeting</button>
-          <button className={activeTab === 'voice' ? 'active' : ''} onClick={() => setActiveTab('voice')}>Voice Call</button>
-        </div>
-      </div>
+  const handleCreateTaskFromMsg = (msgText: string) => {
+    setTaskMsgContext(msgText);
+    setShowTaskModal(true);
+  };
 
-      {activeTab === 'chat' && (
-        <div className="chat-window">
-          <div className="chat-messages">
-            {messages.map((m, idx) => (
-              <div key={idx} className={`chat-bubble ${m.sender === 'Jamie Doyle' ? 'mine' : ''}`}>
-                <div className="chat-sender">{m.sender} <small>{m.time}</small></div>
-                <p>{m.text}</p>
+  const handleCreateAutomationFromMsg = (msgText: string) => {
+    setAutomationContext(msgText);
+    setShowAutomationModal(true);
+  };
+
+  const handleAiAsk = (query: string) => {
+    setAiQuery(query);
+    if (query.toLowerCase().includes('summarise') || query.toLowerCase().includes('summary')) {
+      setAiAnswer('Summary: Team discussed the new website launch and preparing the proposal for John tomorrow. All deliverables are currently on schedule.');
+    } else if (query.toLowerCase().includes('miss') || query.toLowerCase().includes('today')) {
+      setAiAnswer('You missed 3 messages from Sarah regarding the website review and 1 task assignment from James.');
+    } else {
+      setAiAnswer(`Marlow AI scanned workspace memory for "${query}": Found relevant mentions across Sales Team chat and shared files.`);
+    }
+  };
+
+  const filteredPeople = peopleList.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.dept.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const activeMessages = conversationsData[selectedConversation] || [
+    { sender: selectedConversation, text: `Welcome to your conversation with ${selectedConversation}. Type a message below to start collaborating.`, time: 'Just now' }
+  ];
+
+  return (
+    <div className="marlow-chat-workspace">
+      {/* 1. CHAT NAVIGATION SIDEBAR */}
+      <aside className="chat-nav-sidebar">
+        <div className="chat-nav-header">
+          <h3>Workspace Chat</h3>
+          <div className="presence-badge-wrap">
+            <button className="status-trigger-btn" onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}>
+              <span className={`status-dot-indicator ${userStatus.toLowerCase()}`} />
+              <small>{userStatus}</small>
+              <ChevronDown size={12} />
+            </button>
+            {statusDropdownOpen && (
+              <div className="status-dropdown-menu">
+                {['Available', 'Away', 'Busy', 'Offline'].map((st) => (
+                  <button key={st} onClick={() => { setUserStatus(st as any); setStatusDropdownOpen(false); }}>
+                    <span className={`status-dot-indicator ${st.toLowerCase()}`} />
+                    {st}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Global Search Bar */}
+        <div className="chat-sidebar-search">
+          <Search size={14} />
+          <input placeholder="Search messages, files, people..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+
+        {/* Primary Sections Switcher */}
+        <div className="chat-main-tabs">
+          <button className={activeNavSection === 'chat' ? 'active' : ''} onClick={() => setActiveNavSection('chat')}><MessageSquareText size={15} /> Chat</button>
+          <button className={activeNavSection === 'people' ? 'active' : ''} onClick={() => setActiveNavSection('people')}><Users size={15} /> People</button>
+          <button className={activeNavSection === 'activity' ? 'active' : ''} onClick={() => setActiveNavSection('activity')}>
+            <Bell size={15} /> Activity
+            {notificationsList.filter(n => !n.read).length > 0 && <span className="unread-badge">{notificationsList.filter(n => !n.read).length}</span>}
+          </button>
+        </div>
+
+        {activeNavSection === 'chat' && (
+          <div className="chat-tree-navigator">
+            {/* Direct Messages Section */}
+            <div className="tree-group">
+              <div className="tree-group-header" onClick={() => setCollapseDMs(!collapseDMs)}>
+                <span>Direct Messages</span>
+                <ChevronDown size={13} className={collapseDMs ? 'rotated' : ''} />
+              </div>
+              {!collapseDMs && (
+                <div className="tree-items">
+                  {Object.keys(conversationsData).filter(k => ['Sarah Jones', 'James Smith', 'Emma Brown'].includes(k)).map(name => (
+                    <button key={name} className={`tree-item ${selectedConversation === name ? 'active' : ''}`} onClick={() => setSelectedConversation(name)}>
+                      <span className="tree-avatar-sm">{name.split(' ').map(n => n[0]).join('')}</span>
+                      <span className="tree-item-label">{name}</span>
+                      <span className="online-dot-mini green" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Groups Section */}
+            <div className="tree-group">
+              <div className="tree-group-header" onClick={() => setCollapseGroups(!collapseGroups)}>
+                <span>Groups / Teams</span>
+                <ChevronDown size={13} className={collapseGroups ? 'rotated' : ''} />
+              </div>
+              {!collapseGroups && (
+                <div className="tree-items">
+                  {['Sales Team', 'Marketing', 'Operations', 'Management'].map(group => (
+                    <button key={group} className={`tree-item ${selectedConversation === group ? 'active' : ''}`} onClick={() => setSelectedConversation(group)}>
+                      <FolderKanban size={14} />
+                      <span className="tree-item-label">{group}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Channels Section */}
+            <div className="tree-group">
+              <div className="tree-group-header" onClick={() => setCollapseChannels(!collapseChannels)}>
+                <span>Channels</span>
+                <ChevronDown size={13} className={collapseChannels ? 'rotated' : ''} />
+              </div>
+              {!collapseChannels && (
+                <div className="tree-items">
+                  {['# general', '# leads', '# customer-issues', '# resources'].map(channel => (
+                    <button key={channel} className={`tree-item ${selectedConversation === channel ? 'active' : ''}`} onClick={() => setSelectedConversation(channel)}>
+                      <Hash size={14} />
+                      <span className="tree-item-label">{channel}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeNavSection === 'people' && (
+          <div className="sidebar-people-list">
+            <div className="section-sub-title">Directory ({filteredPeople.length})</div>
+            {filteredPeople.map(p => (
+              <button key={p.name} className="sidebar-person-row" onClick={() => { setSelectedConversation(p.name); setActiveNavSection('chat'); }}>
+                <span className="table-avatar">{p.name.split(' ').map(n => n[0]).join('')}</span>
+                <div>
+                  <b>{p.name}</b>
+                  <small>{p.role}</small>
+                </div>
+                <span className={`status-dot-indicator ${p.status.toLowerCase()}`} />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {activeNavSection === 'activity' && (
+          <div className="sidebar-activity-list">
+            <div className="section-sub-title">Notifications</div>
+            {notificationsList.map(n => (
+              <div key={n.id} className={`activity-notification-item ${!n.read ? 'unread' : ''}`} onClick={() => {
+                setNotificationsList(notificationsList.map(item => item.id === n.id ? { ...item, read: true } : item));
+              }}>
+                <Bell size={13} />
+                <div>
+                  <p>{n.text}</p>
+                  <small>{n.time}</small>
+                </div>
               </div>
             ))}
           </div>
-          <form className="chat-input-bar" onSubmit={handleSend}>
-            <input placeholder="Message team or colleagues..." value={inputMsg} onChange={(e) => setInputMsg(e.target.value)} />
-            <button type="submit" className="button button-dark"><Send size={15} /> Send</button>
-          </form>
+        )}
+
+        {/* AI Assistant Quick Trigger */}
+        <div className="sidebar-ai-box" onClick={() => setShowAiModal(true)}>
+          <Sparkles size={14} />
+          <div>
+            <b>Ask Marlow AI</b>
+            <small>Summarise, search & automate</small>
+          </div>
+        </div>
+      </aside>
+
+      {/* 2. CHAT CONVERSATION / WORKSPACE MAIN PANEL */}
+      <main className="chat-main-pane">
+        <div className="chat-pane-header">
+          <div className="chat-header-title">
+            {selectedConversation.startsWith('#') ? <Hash size={18} /> : selectedConversation.includes('Team') || selectedConversation === 'Marketing' || selectedConversation === 'Operations' ? <FolderKanban size={18} /> : <Users size={18} />}
+            <div>
+              <h2>{selectedConversation}</h2>
+              <p>{selectedConversation.startsWith('#') ? 'Channel workspace for project alignment' : selectedConversation.includes('Team') || selectedConversation === 'Marketing' ? 'Group Workspace · 5 members active' : 'Direct Message · Online'}</p>
+            </div>
+          </div>
+          <div className="chat-header-actions">
+            <button className="button button-outline" onClick={() => setShowAiModal(true)}><Sparkles size={14} /> Marlow AI</button>
+            <button className="button button-outline"><Phone size={14} /></button>
+            <button className="button button-outline"><Video size={14} /></button>
+          </div>
+        </div>
+
+        {/* If Group Workspace, render subtabs */}
+        {(selectedConversation === 'Sales Team' || selectedConversation === 'Marketing' || selectedConversation === 'Operations') && (
+          <div className="group-workspace-subtabs">
+            <button className={groupWorkspaceTab === 'chat' ? 'active' : ''} onClick={() => setGroupWorkspaceTab('chat')}>Chat</button>
+            <button className={groupWorkspaceTab === 'channels' ? 'active' : ''} onClick={() => setGroupWorkspaceTab('channels')}>Channels</button>
+            <button className={groupWorkspaceTab === 'files' ? 'active' : ''} onClick={() => setGroupWorkspaceTab('files')}>Files (3)</button>
+            <button className={groupWorkspaceTab === 'tasks' ? 'active' : ''} onClick={() => setGroupWorkspaceTab('tasks')}>Tasks (4)</button>
+            <button className={groupWorkspaceTab === 'members' ? 'active' : ''} onClick={() => setGroupWorkspaceTab('members')}>Members (5)</button>
+            <button className={groupWorkspaceTab === 'automations' ? 'active' : ''} onClick={() => setGroupWorkspaceTab('automations')}>Automations (2)</button>
+          </div>
+        )}
+
+        {/* Group Files View */}
+        {(selectedConversation === 'Sales Team' || selectedConversation === 'Marketing') && groupWorkspaceTab === 'files' ? (
+          <div className="group-tab-content">
+            <h3>Shared Files & Documents</h3>
+            <div className="files-grid-cards">
+              <div className="file-card-box"><FileText size={24} /><b>Q4_Proposal_Draft.pdf</b><small>Uploaded by Sarah · 2.4 MB</small></div>
+              <div className="file-card-box"><FileText size={24} /><b>Pricing_Matrix_2026.xlsx</b><small>Uploaded by Sophie · 1.1 MB</small></div>
+              <div className="file-card-box"><FileText size={24} /><b>Client_Requirements.docx</b><small>Uploaded by Daniel · 850 KB</small></div>
+            </div>
+          </div>
+        ) : (selectedConversation === 'Sales Team' || selectedConversation === 'Marketing') && groupWorkspaceTab === 'tasks' ? (
+          <div className="group-tab-content">
+            <h3>Group Action Items & Tasks</h3>
+            <div className="group-tasks-list">
+              <div className="task-row-mini"><Check size={14} /><span>Send proposal to John tomorrow</span><small>Assigned to Sarah · Due Today</small></div>
+              <div className="task-row-mini"><Check size={14} /><span>Review API security documentation</span><small>Assigned to James · Due Oct 15</small></div>
+            </div>
+          </div>
+        ) : (selectedConversation === 'Sales Team' || selectedConversation === 'Marketing') && groupWorkspaceTab === 'members' ? (
+          <div className="group-tab-content">
+            <h3>Group Members</h3>
+            <div className="group-members-grid">
+              {peopleList.slice(0, 4).map(p => (
+                <div key={p.name} className="member-card-box">
+                  <span className="table-avatar">{p.name.split(' ').map(n => n[0]).join('')}</span>
+                  <div><b>{p.name}</b><small>{p.role}</small></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (selectedConversation === 'Sales Team' || selectedConversation === 'Marketing') && groupWorkspaceTab === 'automations' ? (
+          <div className="group-tab-content">
+            <h3>Active Group Automations</h3>
+            <div className="automations-list-box">
+              <div className="auto-row"><b>New Enquiry → Notify Sales Team</b><small>Active · Triggered 14 times today</small></div>
+              <div className="auto-row"><b>Proposal Sent → Create Follow-up Task</b><small>Active · Triggered 3 times today</small></div>
+            </div>
+          </div>
+        ) : (
+          /* Standard Message Stream */
+          <div className="chat-messages-container">
+            {activeMessages.map((msg, index) => (
+              <div key={index} className={`chat-message-row ${msg.sender === 'Jamie Doyle' ? 'my-message' : ''}`}>
+                <span className="msg-avatar">{msg.sender.split(' ').map(n => n[0]).join('')}</span>
+                <div className="msg-content-wrap">
+                  <div className="msg-meta">
+                    <b>{msg.sender}</b>
+                    <small>{msg.time}</small>
+                  </div>
+                  <p>{msg.text}</p>
+                  
+                  {msg.repliesCount && (
+                    <button className="thread-reply-count-btn" onClick={() => setActiveThreadMsg({ sender: msg.sender, text: msg.text, time: msg.time, replies: ['Sounds good, I will prepare it now.', 'Make sure pricing is updated.'] })}>
+                      <MessageSquareText size={12} /> {msg.repliesCount} replies · View thread
+                    </button>
+                  )}
+                </div>
+
+                {/* Message Action Menu (...) */}
+                <div className="msg-actions-hover">
+                  <button title="React" onClick={() => alert('Reacted with 👍')}><Smile size={13} /></button>
+                  <button title="Create Task from Message" onClick={() => handleCreateTaskFromMsg(msg.text)}><ListChecks size={13} /></button>
+                  <button title="Create Automation from Message" onClick={() => handleCreateAutomationFromMsg(msg.text)}><Sparkles size={13} /></button>
+                  <button title="Pin message"><Pin size={13} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Message Composer */}
+        <form className="chat-composer-bar" onSubmit={handleSendMessage}>
+          <div className="composer-tools">
+            <button type="button" title="Attach file"><Paperclip size={16} /></button>
+            <button type="button" title="Mention teammate"><AtSign size={16} /></button>
+            <button type="button" title="Emoji"><Smile size={16} /></button>
+          </div>
+          <input placeholder={`Message ${selectedConversation}... (Type @ to mention, use ... to turn into task/automation)`} value={messageInput} onChange={(e) => setMessageInput(e.target.value)} />
+          <button type="submit" className="button button-dark"><Send size={15} /> Send</button>
+        </form>
+      </main>
+
+      {/* 3. THREAD PANEL (Slide-over if thread is clicked) */}
+      {activeThreadMsg && (
+        <aside className="chat-thread-panel">
+          <div className="thread-header">
+            <h3>Thread</h3>
+            <button onClick={() => setActiveThreadMsg(null)}><X size={16} /></button>
+          </div>
+          <div className="thread-root-msg">
+            <b>{activeThreadMsg.sender}</b>
+            <p>{activeThreadMsg.text}</p>
+          </div>
+          <div className="thread-replies-list">
+            <div className="section-sub-title">Replies (2)</div>
+            {activeThreadMsg.replies.map((rep, idx) => (
+              <div key={idx} className="thread-reply-bubble">
+                <small>Teammate</small>
+                <p>{rep}</p>
+              </div>
+            ))}
+          </div>
+          <div className="thread-reply-composer">
+            <input placeholder="Reply in thread..." value={threadReplyInput} onChange={(e) => setThreadReplyInput(e.target.value)} />
+            <button className="button button-dark" onClick={() => { if(threadReplyInput) { activeThreadMsg.replies.push(threadReplyInput); setThreadReplyInput(''); } }}><Send size={13} /></button>
+          </div>
+        </aside>
+      )}
+
+      {/* 4. MODAL: CREATE TASK FROM MESSAGE */}
+      {showTaskModal && (
+        <div className="cookie-modal-backdrop">
+          <div className="cookie-modal">
+            <div className="cookie-modal-header">
+              <h3>Create Task from Chat</h3>
+              <button onClick={() => setShowTaskModal(false)}><X size={18} /></button>
+            </div>
+            <p className="cookie-modal-desc">Marlow automatically converted this message into a tracked task for your workspace.</p>
+            <div className="settings-form" style={{ gap: '15px' }}>
+              <label className="setting-field">Task Name <input defaultValue={`Action: ${taskMsgContext}`} /></label>
+              <label className="setting-field">Assigned To <input defaultValue="Sarah Jones" /></label>
+              <label className="setting-field">Due Date <input defaultValue="Tomorrow" /></label>
+              <button className="button button-dark" onClick={() => { alert('Task successfully created and linked to Tasks view!'); setShowTaskModal(false); }}>Save Task to Workspace</button>
+            </div>
+          </div>
         </div>
       )}
 
-      {activeTab === 'video' && (
-        <div className="video-meet-pane">
-          {!inVideoCall ? (
-            <div className="call-lobby">
-              <Video size={42} />
-              <h3>Start or Join Video Meeting</h3>
-              <p>Connect instantly with your team using your camera and microphone.</p>
-              <button className="button button-dark" onClick={() => setInVideoCall(true)}><Video size={16} /> Join Video Call</button>
+      {/* 5. MODAL: CREATE AUTOMATION FROM MESSAGE */}
+      {showAutomationModal && (
+        <div className="cookie-modal-backdrop">
+          <div className="cookie-modal">
+            <div className="cookie-modal-header">
+              <h3>Turn Conversation into Automation</h3>
+              <button onClick={() => setShowAutomationModal(false)}><X size={18} /></button>
             </div>
-          ) : (
-            <div className="video-active-room">
-              <div className="video-grid-box">
-                <div className="video-tile">
-                  <video ref={localVideoRef} autoPlay playsInline muted={audioMuted} />
-                  <span className="video-username">Jamie Doyle (You)</span>
-                </div>
-                <div className="video-tile remote-tile">
-                  <div className="remote-avatar-placeholder">SO</div>
-                  <span className="video-username">Sam Okafor</span>
-                </div>
-              </div>
-              <div className="video-controls">
-                <button onClick={() => setAudioMuted(!audioMuted)} className={`control-btn ${audioMuted ? 'danger' : ''}`}>{audioMuted ? <MicOff size={18} /> : <Mic size={18} />}</button>
-                <button onClick={() => setVideoMuted(!videoMuted)} className={`control-btn ${videoMuted ? 'danger' : ''}`}>{videoMuted ? <VideoOff size={18} /> : <Video size={18} />}</button>
-                <button onClick={() => setInVideoCall(false)} className="control-btn hangup"><PhoneOff size={18} /></button>
-              </div>
+            <p className="cookie-modal-desc">Marlow AI extracted this workflow rule from your chat:</p>
+            <div className="automation-preview-box">
+              <div className="auto-node"><b>Trigger</b>: Incoming Chat / Enquiry</div>
+              <div className="auto-arrow">↓</div>
+              <div className="auto-node"><b>Action</b>: {automationContext}</div>
+              <div className="auto-arrow">↓</div>
+              <div className="auto-node"><b>Notify</b>: Sales Team & Assign Owner</div>
             </div>
-          )}
+            <div style={{ marginTop: '20px' }}>
+              <button className="button button-dark" onClick={() => { alert('Automation workflow activated!'); setShowAutomationModal(false); }}>Activate Workflow</button>
+            </div>
+          </div>
         </div>
       )}
 
-      {activeTab === 'voice' && (
-        <div className="voice-call-pane">
-          {!inVoiceCall ? (
-            <div className="call-lobby">
-              <Phone size={42} />
-              <h3>Team Audio Conference</h3>
-              <p>Start a secure voice-only call with your workspace teammates.</p>
-              <button className="button button-dark" onClick={() => setInVoiceCall(true)}><Phone size={16} /> Start Voice Call</button>
+      {/* 6. MODAL: MARLOW AI ASSISTANT */}
+      {showAiModal && (
+        <div className="cookie-modal-backdrop">
+          <div className="cookie-modal">
+            <div className="cookie-modal-header">
+              <h3>Marlow AI Workspace Assistant</h3>
+              <button onClick={() => setShowAiModal(false)}><X size={18} /></button>
             </div>
-          ) : (
-            <div className="voice-active-room">
-              <div className="voice-pulser">
-                <Volume2 size={40} />
+            <p className="cookie-modal-desc">Ask anything about your team conversations, decisions, files, or tasks.</p>
+            <div className="ai-modal-body">
+              <div className="ai-prompts-row">
+                <button onClick={() => handleAiAsk('Summarise this conversation')}>Summarise conversation</button>
+                <button onClick={() => handleAiAsk('What did I miss today?')}>What did I miss today?</button>
+                <button onClick={() => handleAiAsk('Find the latest pricing proposal')}>Find pricing document</button>
               </div>
-              <h3>Connected to Team Audio</h3>
-              <p>Sam Okafor and Alex Kim are in this call.</p>
-              <div className="voice-controls">
-                <button onClick={() => setVoiceMuted(!voiceMuted)} className={`control-btn ${voiceMuted ? 'danger' : ''}`}>{voiceMuted ? <MicOff size={18} /> : <Mic size={18} />}</button>
-                <button onClick={() => setInVoiceCall(false)} className="control-btn hangup"><PhoneOff size={18} /></button>
+              <div className="ai-input-bar">
+                <input placeholder="Ask Marlow AI..." value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} />
+                <button className="button button-dark" onClick={() => handleAiAsk(aiQuery)}>Ask</button>
               </div>
+              {aiAnswer && (
+                <div className="ai-answer-box">
+                  <Sparkles size={16} />
+                  <p>{aiAnswer}</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
