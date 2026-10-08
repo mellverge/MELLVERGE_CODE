@@ -1172,3 +1172,174 @@
   margin-top: 12px;
   font-weight: 500;
 }
+
+/* =============================================================
+   SIGN IN WITH APPLE MODAL STYLES (MATCHING AUTH INSTANCE)
+   ============================================================= */
+.apple-signin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: grid;
+  place-items: center;
+  z-index: 99999;
+  backdrop-filter: blur(8px);
+  padding: 20px;
+}
+
+.apple-signin-modal {
+  background: #1c1c1e;
+  color: #f5f5f7;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 28px;
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: grid;
+  gap: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Manrope', sans-serif;
+}
+
+.apple-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.apple-modal-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: #fff;
+}
+
+.apple-close-btn {
+  background: rgba(255,255,255,0.1);
+  color: #aaa;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.apple-close-btn:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.apple-app-intro {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 16px;
+  border-radius: 14px;
+}
+
+.apple-app-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #000;
+  flex: none;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.apple-app-intro p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #e5e5ea;
+  font-weight: 500;
+}
+
+.apple-account-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #2c2c2e;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 14px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.apple-account-card:hover {
+  border-color: rgba(255,255,255,0.3);
+}
+
+.apple-account-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #007aff;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+}
+
+.apple-account-info {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+}
+
+.apple-account-info b {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.apple-account-info small {
+  font-size: 13px;
+  color: #8e8e93;
+}
+
+.apple-signin-btn {
+  width: 100%;
+  background: #007aff;
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.apple-signin-btn:hover {
+  background: #0062cc;
+}
+
+.apple-signin-btn:active {
+  transform: scale(0.98);
+}
+
+.apple-alt-link {
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: #0a84ff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.apple-alt-link:hover {
+  text-decoration: underline;
+}
