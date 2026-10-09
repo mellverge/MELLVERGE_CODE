@@ -29,22 +29,18 @@ import {
   Phone,
   Video,
   Mic,
-  MicOff,
-  VideoOff,
   Send,
-  PhoneOff,
-  Volume2,
   Hash,
   Pin,
-  Bookmark,
-  Share2,
   Smile,
   Paperclip,
   AtSign,
-  Filter,
-  Eye,
-  Lock,
-  Globe
+  HelpCircle,
+  LogOut,
+  Sun,
+  Moon,
+  Sliders,
+  Palette
 } from 'lucide-react';
 
 type PublicRoute = 'home' | 'features' | 'pricing' | 'about' | 'contact' | 'privacy' | 'terms' | 'security' | 'login' | 'signup' | 'onboarding';
@@ -72,10 +68,11 @@ const plans = [
   { name: 'Plus', monthly: 199, description: 'For businesses that want Marlow managing more of their operations.', features: ['Everything in Pro', 'Advanced autonomous workflows', 'Multiple teams', 'Advanced reporting', 'Custom workflows', 'Full operations dashboard', 'Priority support'] },
 ];
 
+// Re-ordered nav items to match Zapier's sidebar icon positioning (Upload 1, 3, 4 layout)
 const navItems: { route: AppRoute; label: string; icon: typeof Home }[] = [
   { route: 'dashboard', label: 'Dashboard', icon: Home },
-  { route: 'meetings', label: 'Meetings', icon: MessageSquareText },
   { route: 'chat', label: 'Chat & Workspace', icon: MessageSquareText },
+  { route: 'meetings', label: 'Meetings', icon: CalendarDays },
   { route: 'tasks', label: 'Tasks', icon: ListChecks },
   { route: 'follow-ups', label: 'Follow-ups', icon: Users },
   { route: 'calendar', label: 'Calendar', icon: CalendarDays },
@@ -94,6 +91,7 @@ function App() {
   const [cookieState, setCookieState] = useState<'hidden' | 'banner' | 'manage'>('hidden');
   const [marketingCookies, setMarketingCookies] = useState(false);
   const [analyticsCookies, setAnalyticsCookies] = useState(true);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   goTo = (next: Route) => {
     setRoute(next);
@@ -121,8 +119,8 @@ function App() {
   const handleSavePreferences = () => { localStorage.setItem('marlow_cookie_consent', 'custom'); setCookieState('hidden'); };
 
   return (
-    <div className="site-shell">
-      {isAppRoute(route) ? <AppShell route={route} /> : route === 'login' || route === 'signup' ? <AuthPage mode={route} /> : route === 'onboarding' ? <Onboarding /> : <Marketing route={route} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} />}
+    <div className={`site-shell ${theme === 'dark' ? 'dark-theme-shell' : ''}`}>
+      {isAppRoute(route) ? <AppShell route={route} theme={theme} setTheme={setTheme} /> : route === 'login' || route === 'signup' ? <AuthPage mode={route} /> : route === 'onboarding' ? <Onboarding /> : <Marketing route={route} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} />}
       
       {cookieState === 'banner' && (
         <div className="cookie-banner">
@@ -268,7 +266,7 @@ function PricingPage() {
                 <span> {billing === 'annual' ? ' / year' : ' / month'}</span>
               </div>
               <div className="price-detail">
-                {billing === 'annual' ? 'billed annually · save 20%' : 'billed monthly · cancel any time'}
+                {billing === 'annual' ? 'billed annually · save 20% ' : 'billed monthly · cancel any time'}
               </div>
               <button className={`button ${plan.featured ? 'button-light' : 'button-outline'}`} onClick={() => goTo('signup')}>
                 Start with {plan.name} <ArrowRight size={15} />
@@ -435,7 +433,6 @@ function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
               
               <button type="button" className="button button-social"><Command size={15} /> Continue with Google</button>
               
-              {/* Added Continue with Apple button */}
               <button type="button" className="button button-social" onClick={() => setIsAppleModalOpen(true)}>
                 <svg width="16" height="16" viewBox="0 0 170 170" fill="currentColor">
                   <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.1-1.9-14.24-6.08-3.05-2.61-6.9-7.23-11.55-13.86-6.13-8.75-10.9-18.36-14.31-28.84-3.41-10.49-5.12-20.61-5.12-30.37 0-14.33 3.66-26.04 10.98-35.13 7.32-9.09 16.63-13.72 27.93-13.89 4.13 0 9.07 1.15 14.83 3.46 5.76 2.31 9.53 3.47 11.3 3.47 1.41 0 5.25-1.23 11.52-3.69 6.27-2.46 11.33-3.6 15.18-3.41 12.33.65 22.04 5.37 29.13 14.17-10.95 6.64-16.32 15.65-16.11 27.02.22 9.07 3.86 16.63 10.91 22.69 5.86 5.06 13.06 7.92 21.6 8.58-2.62 7.78-6.13 15.86-10.53 24.24zM119.22 31.85c0-6.62 2.42-12.78 7.27-18.49 4.84-5.71 10.9-9.11 18.17-10.2 0 1.09-.08 2.14-.24 3.15-.16 1.02-.42 2.04-.79 3.07-3.62 10.13-9.17 17.58-16.65 22.34-4.84 3.12-9.72 4.79-14.63 5.01-.11-.96-.13-1.93-.13-2.88z"/>
@@ -449,7 +446,6 @@ function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
         </div>
       </main>
 
-      {/* Sign in with Apple Modal */}
       {isAppleModalOpen && (
         <div className="apple-signin-modal-backdrop" onClick={() => setIsAppleModalOpen(false)}>
           <div className="apple-signin-modal" onClick={(e) => e.stopPropagation()}>
@@ -499,15 +495,160 @@ function Onboarding() {
   return <div className="onboarding-shell"><header className="onboarding-header"><Logo /><span>Workspace setup <b>0{step}</b> / 06</span><button onClick={() => goTo('dashboard')}>Skip for now <ArrowRight size={15} /></button></header><main className="onboarding-main"><div className="onboarding-progress">{questions.map((_, index) => <span key={index} className={index < step ? 'done' : ''} />)}</div><div className="onboarding-card"><div className="section-kicker">{current.eyebrow}</div><h1>{current.title}</h1><p>{current.body}</p>{current.input ? <label className="onboarding-input">Business name<input autoFocus placeholder="e.g. Northstar Studio" /></label> : <div className="choice-grid">{current.choices?.map((choice, index) => <button key={choice} className={index === 0 ? 'selected' : ''}>{choice}<span>{index === 0 && <Check size={13} />}</span></button>)}</div>}</div><button className="button button-dark onboarding-next" onClick={() => step < 6 ? setStep(step + 1) : goTo('dashboard')}>{step === 6 ? 'Welcome to Marlow' : 'Continue'} <ArrowRight size={16} /></button><p className="onboarding-foot">Your answers help shape your starting workspace. You can change them later.</p></main></div>;
 }
 
-function AppShell({ route }: { route: AppRoute }) {
+function AppShell({ route, theme, setTheme }: { route: AppRoute; theme: 'light' | 'dark'; setTheme: (t: 'light' | 'dark') => void }) {
   const [mobileNav, setMobileNav] = useState(false);
-  const activeLabel = navItems.find((item) => item.route === route)?.label ?? 'Settings';
-  return <div className="app-shell"><aside className={`app-sidebar ${mobileNav ? 'open' : ''}`}><div className="app-sidebar-top"><Logo /><button className="sidebar-close" onClick={() => setMobileNav(false)}><X size={18} /></button></div><button className="workspace-switcher"><span className="workspace-avatar">N</span><span><b>Northstar Studio</b><small>Scale workspace</small></span><ChevronDown size={14} /></button><nav className="app-nav">{navItems.map(({ route: itemRoute, label, icon: Icon }) => <button key={itemRoute} className={route === itemRoute ? 'active' : ''} onClick={() => goTo(itemRoute)}><Icon size={17} />{label}</button>)}<div className="nav-divider" /><button className={route === 'settings' ? 'active' : ''} onClick={() => goTo('settings')}><Settings size={17} />Settings</button><button className={route === 'billing' ? 'active' : ''} onClick={() => goTo('billing')}><CreditCard size={17} />Billing</button></nav><div className="sidebar-bottom"><button><CircleHelp size={17} /> Help centre</button><div className="user-chip"><span className="user-avatar">JD</span><span><b>Jamie Doyle</b><small>Admin</small></span><MoreHorizontal size={16} /></div></div></aside><main className="app-main"><header className="app-header"><button className="mobile-app-menu" onClick={() => setMobileNav(true)}><Menu size={20} /></button><div className="app-search"><Search size={16} /><span>Search your workspace</span><kbd>⌘ K</kbd></div><div className="app-actions"><button aria-label="Notifications"><Bell size={18} /></button><button className="button button-dark" onClick={() => goTo('meetings')}><Plus size={15} /> New meeting</button></div></header><div className="app-page"><PageHeader label={activeLabel} /><AppContent route={route} /></div></main></div>;
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+
+  const activeLabel = navItems.find((item) => item.route === route)?.label ?? (route === 'settings' ? 'Settings' : route === 'billing' ? 'Billing' : 'Dashboard');
+
+  return (
+    <div className={`app-shell ${theme === 'dark' ? 'dark-app-shell' : ''}`}>
+      {/* Zapier-style Sidebar (Upload 1 & 3 layout matching icon order) */}
+      <aside className={`app-sidebar ${mobileNav ? 'open' : ''}`}>
+        <div className="app-sidebar-top">
+          <Logo />
+          <button className="sidebar-close" onClick={() => setMobileNav(false)}><X size={18} /></button>
+        </div>
+        <button className="workspace-switcher">
+          <span className="workspace-avatar">N</span>
+          <span><b>Northstar Studio</b><small>Scale workspace</small></span>
+          <ChevronDown size={14} />
+        </button>
+        <nav className="app-nav">
+          {navItems.map(({ route: itemRoute, label, icon: Icon }) => (
+            <button key={itemRoute} className={route === itemRoute ? 'active' : ''} onClick={() => goTo(itemRoute)}>
+              <Icon size={17} />{label}
+            </button>
+          ))}
+          <div className="nav-divider" />
+          <button className={route === 'settings' ? 'active' : ''} onClick={() => goTo('settings')}><Settings size={17} />Settings</button>
+          <button className={route === 'billing' ? 'active' : ''} onClick={() => goTo('billing')}><CreditCard size={17} />Billing</button>
+        </nav>
+        <div className="sidebar-bottom">
+          <button onClick={() => setShowHelpModal(true)}><CircleHelp size={17} /> Help centre</button>
+          <div className="user-chip">
+            <span className="user-avatar">MO</span>
+            <span><b>Michael Onuegbu</b><small>Admin</small></span>
+            <MoreHorizontal size={16} />
+          </div>
+        </div>
+      </aside>
+
+      <main className="app-main">
+        {/* Zapier-style Header with Help & User Menu matching Upload 1 & 3 */}
+        <header className="app-header zapier-header-bar">
+          <button className="mobile-app-menu" onClick={() => setMobileNav(true)}><Menu size={20} /></button>
+          <div className="app-search">
+            <Search size={16} />
+            <span>Search assets, apps, templates, and more</span>
+            <kbd>⌘ K</kbd>
+          </div>
+          
+          <div className="zapier-header-actions-right">
+            <button className="zapier-top-nav-btn" onClick={() => setShowHelpModal(true)}>
+              <HelpCircle size={16} /> Help
+            </button>
+            <button className="zapier-top-nav-btn" onClick={() => goTo('features')}>
+              <Sparkles size={16} /> Explore features
+            </button>
+            <button className="zapier-upgrade-btn" onClick={() => goTo('billing')}>
+              Upgrade
+            </button>
+
+            {/* User Avatar with Dropdown matching Upload 3 */}
+            <div className="zapier-user-menu-wrap">
+              <button className="zapier-user-avatar-btn" onClick={() => setUserDropdownOpen(!userDropdownOpen)}>
+                mo
+              </button>
+              
+              {userDropdownOpen && (
+                <div className="zapier-user-dropdown">
+                  <div className="zapier-dropdown-email">michaelch876@gmail.com</div>
+                  <div className="zapier-dropdown-search-box">
+                    <Search size={14} />
+                    <input placeholder="Search accounts and workspaces" />
+                  </div>
+                  <div className="zapier-dropdown-active-account" onClick={() => setUserDropdownOpen(false)}>
+                    <span className="zapier-dropdown-avatar">mo</span>
+                    <div>
+                      <b>michael onuegbu</b>
+                      <small>Individual</small>
+                    </div>
+                    <Check size={15} className="check-icon" />
+                  </div>
+                  <div className="zapier-dropdown-divider" />
+                  <button className="zapier-dropdown-link" onClick={() => { setUserDropdownOpen(false); goTo('settings'); }}>
+                    <Settings size={15} /> Settings
+                  </button>
+                  <button className="zapier-dropdown-link logout-link-item" onClick={() => { setUserDropdownOpen(false); setShowLogoutConfirm(true); }}>
+                    <LogOut size={15} /> Log out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <div className="app-page">
+          <PageHeader label={activeLabel} />
+          <AppContent route={route} theme={theme} setTheme={setTheme} />
+        </div>
+      </main>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="cookie-modal-backdrop">
+          <div className="cookie-modal logout-confirm-modal">
+            <div className="cookie-modal-header">
+              <h3>Confirm Logout</h3>
+              <button onClick={() => setShowLogoutConfirm(false)}><X size={18} /></button>
+            </div>
+            <p className="cookie-modal-desc">Are you sure you want to log out of Marlow? You will need to sign in again to access your workspace.</p>
+            <div className="cookie-modal-actions">
+              <button className="button button-outline" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
+              <button className="button button-dark logout-confirm-btn" onClick={() => { setShowLogoutConfirm(false); goTo('home'); }}>Yes, Log Out</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help Modal */}
+      {showHelpModal && (
+        <div className="cookie-modal-backdrop">
+          <div className="cookie-modal">
+            <div className="cookie-modal-header">
+              <h3>Marlow Help Centre</h3>
+              <button onClick={() => setShowHelpModal(false)}><X size={18} /></button>
+            </div>
+            <p className="cookie-modal-desc">Need assistance with your operations workspace? Browse popular topics or contact support.</p>
+            <div className="settings-form" style={{ gap: '12px' }}>
+              <div className="help-topic-row"><b>Getting Started with AI Operations</b><small>Learn how to capture enquiries & automate tasks.</small></div>
+              <div className="help-topic-row"><b>Connecting Team & Chat Workspaces</b><small>Manage direct messages, channels & file sharing.</small></div>
+              <div className="help-topic-row"><b>Billing & Subscription Plans</b><small>Manage Starter, Growth, Pro and Plus tiers.</small></div>
+              <button className="button button-dark" onClick={() => setShowHelpModal(false)}>Close Help</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
-function PageHeader({ label }: { label: string }) { return <div className="app-page-header"><div><div className="section-kicker">Northstar Studio / Workspace</div><h1>{label}</h1></div><div className="app-date">Tuesday, 14 October 2025 <ChevronDown size={14} /></div></div>; }
+function PageHeader({ label }: { label: string }) { 
+  return (
+    <div className="app-page-header">
+      <div>
+        <div className="section-kicker">Northstar Studio / Workspace</div>
+        <h1>{label}</h1>
+      </div>
+      <div className="app-date">Tuesday, 14 October 2025 <ChevronDown size={14} /></div>
+    </div>
+  ); 
+}
 
-function AppContent({ route }: { route: AppRoute }) {
+function AppContent({ route, theme, setTheme }: { route: AppRoute; theme: 'light' | 'dark'; setTheme: (t: 'light' | 'dark') => void }) {
   if (route === 'dashboard') return <DashboardView />;
   if (route === 'meetings') return <MeetingsView />;
   if (route === 'chat') return <ChatWorkspaceView />;
@@ -517,25 +658,23 @@ function AppContent({ route }: { route: AppRoute }) {
   if (route === 'team') return <TeamView />;
   if (route === 'assistant') return <AssistantView />;
   if (route === 'memory') return <MemoryView />;
-  if (route === 'settings') return <SettingsView />;
-  return <BillingView />;
+  if (route === 'settings') return <SettingsView theme={theme} setTheme={setTheme} />;
+  if (route === 'billing') return <BillingView />;
+  return <DashboardView />;
 }
 
 // -------------------------------------------------------------
-// ENHANCED MARLOW CHAT & COLLABORATION WORKSPACE
+// CHAT & COLLABORATION WORKSPACE
 // -------------------------------------------------------------
 function ChatWorkspaceView() {
   const [activeNavSection, setActiveNavSection] = useState<'chat' | 'people' | 'activity'>('chat');
-  const [chatTab, setChatTab] = useState<'dms' | 'groups' | 'channels'>('dms');
   const [selectedConversation, setSelectedConversation] = useState<string>('Sarah Jones');
   const [messageInput, setMessageInput] = useState('');
   
-  // Section collapse states
   const [collapseDMs, setCollapseDMs] = useState(false);
   const [collapseGroups, setCollapseGroups] = useState(false);
   const [collapseChannels, setCollapseChannels] = useState(false);
 
-  // Modal & action triggers
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskMsgContext, setTaskMsgContext] = useState('');
   const [showAutomationModal, setShowAutomationModal] = useState(false);
@@ -544,19 +683,14 @@ function ChatWorkspaceView() {
   const [aiQuery, setAiQuery] = useState('');
   const [aiAnswer, setAiAnswer] = useState('');
 
-  // Group Workspace sub-tabs
-  const [groupWorkspaceTab, setGroupWorkspaceTab] = useState<'chat' | 'channels' | 'files' | 'tasks' | 'calendar' | 'members' | 'automations'>('chat');
-
-  // Presence and Search state
+  const [groupWorkspaceTab, setGroupWorkspaceTab] = useState<'chat' | 'channels' | 'files' | 'tasks' | 'members' | 'automations'>('chat');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [userStatus, setUserStatus] = useState<'Available' | 'Away' | 'Busy' | 'Offline'>('Available');
 
-  // Thread panel
   const [activeThreadMsg, setActiveThreadMsg] = useState<{ sender: string; text: string; time: string; replies: string[] } | null>(null);
   const [threadReplyInput, setThreadReplyInput] = useState('');
 
-  // Demo state for messages
   const [conversationsData, setConversationsData] = useState<Record<string, { sender: string; text: string; time: string; repliesCount?: number; pinned?: boolean }[]>>({
     'Sarah Jones': [
       { sender: 'Sarah Jones', text: 'Hey Jamie, the new website design is ready for final review.', time: '09:12' },
@@ -603,16 +737,6 @@ function ChatWorkspaceView() {
     setMessageInput('');
   };
 
-  const handleCreateTaskFromMsg = (msgText: string) => {
-    setTaskMsgContext(msgText);
-    setShowTaskModal(true);
-  };
-
-  const handleCreateAutomationFromMsg = (msgText: string) => {
-    setAutomationContext(msgText);
-    setShowAutomationModal(true);
-  };
-
   const handleAiAsk = (query: string) => {
     setAiQuery(query);
     if (query.toLowerCase().includes('summarise') || query.toLowerCase().includes('summary')) {
@@ -636,7 +760,6 @@ function ChatWorkspaceView() {
 
   return (
     <div className="marlow-chat-workspace">
-      {/* 1. CHAT NAVIGATION SIDEBAR */}
       <aside className="chat-nav-sidebar">
         <div className="chat-nav-header">
           <h3>Workspace Chat</h3>
@@ -659,13 +782,11 @@ function ChatWorkspaceView() {
           </div>
         </div>
 
-        {/* Global Search Bar */}
         <div className="chat-sidebar-search">
           <Search size={14} />
           <input placeholder="Search messages, files, people..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </div>
 
-        {/* Primary Sections Switcher */}
         <div className="chat-main-tabs">
           <button className={activeNavSection === 'chat' ? 'active' : ''} onClick={() => setActiveNavSection('chat')}><MessageSquareText size={15} /> Chat</button>
           <button className={activeNavSection === 'people' ? 'active' : ''} onClick={() => setActiveNavSection('people')}><Users size={15} /> People</button>
@@ -677,7 +798,6 @@ function ChatWorkspaceView() {
 
         {activeNavSection === 'chat' && (
           <div className="chat-tree-navigator">
-            {/* Direct Messages Section */}
             <div className="tree-group">
               <div className="tree-group-header" onClick={() => setCollapseDMs(!collapseDMs)}>
                 <span>Direct Messages</span>
@@ -696,7 +816,6 @@ function ChatWorkspaceView() {
               )}
             </div>
 
-            {/* Groups Section */}
             <div className="tree-group">
               <div className="tree-group-header" onClick={() => setCollapseGroups(!collapseGroups)}>
                 <span>Groups / Teams</span>
@@ -714,7 +833,6 @@ function ChatWorkspaceView() {
               )}
             </div>
 
-            {/* Channels Section */}
             <div className="tree-group">
               <div className="tree-group-header" onClick={() => setCollapseChannels(!collapseChannels)}>
                 <span>Channels</span>
@@ -767,7 +885,6 @@ function ChatWorkspaceView() {
           </div>
         )}
 
-        {/* AI Assistant Quick Trigger */}
         <div className="sidebar-ai-box" onClick={() => setShowAiModal(true)}>
           <Sparkles size={14} />
           <div>
@@ -777,7 +894,6 @@ function ChatWorkspaceView() {
         </div>
       </aside>
 
-      {/* 2. CHAT CONVERSATION / WORKSPACE MAIN PANEL */}
       <main className="chat-main-pane">
         <div className="chat-pane-header">
           <div className="chat-header-title">
@@ -794,7 +910,6 @@ function ChatWorkspaceView() {
           </div>
         </div>
 
-        {/* If Group Workspace, render subtabs */}
         {(selectedConversation === 'Sales Team' || selectedConversation === 'Marketing' || selectedConversation === 'Operations') && (
           <div className="group-workspace-subtabs">
             <button className={groupWorkspaceTab === 'chat' ? 'active' : ''} onClick={() => setGroupWorkspaceTab('chat')}>Chat</button>
@@ -806,7 +921,6 @@ function ChatWorkspaceView() {
           </div>
         )}
 
-        {/* Group Files View */}
         {(selectedConversation === 'Sales Team' || selectedConversation === 'Marketing') && groupWorkspaceTab === 'files' ? (
           <div className="group-tab-content">
             <h3>Shared Files & Documents</h3>
@@ -845,7 +959,6 @@ function ChatWorkspaceView() {
             </div>
           </div>
         ) : (
-          /* Standard Message Stream */
           <div className="chat-messages-container">
             {activeMessages.map((msg, index) => (
               <div key={index} className={`chat-message-row ${msg.sender === 'Jamie Doyle' ? 'my-message' : ''}`}>
@@ -864,11 +977,10 @@ function ChatWorkspaceView() {
                   )}
                 </div>
 
-                {/* Message Action Menu (...) */}
                 <div className="msg-actions-hover">
                   <button title="React" onClick={() => alert('Reacted with 👍')}><Smile size={13} /></button>
-                  <button title="Create Task from Message" onClick={() => handleCreateTaskFromMsg(msg.text)}><ListChecks size={13} /></button>
-                  <button title="Create Automation from Message" onClick={() => handleCreateAutomationFromMsg(msg.text)}><Sparkles size={13} /></button>
+                  <button title="Create Task from Message" onClick={() => { setTaskMsgContext(msg.text); setShowTaskModal(true); }}><ListChecks size={13} /></button>
+                  <button title="Create Automation from Message" onClick={() => { setAutomationContext(msg.text); setShowAutomationModal(true); }}><Sparkles size={13} /></button>
                   <button title="Pin message"><Pin size={13} /></button>
                 </div>
               </div>
@@ -876,19 +988,17 @@ function ChatWorkspaceView() {
           </div>
         )}
 
-        {/* Message Composer */}
         <form className="chat-composer-bar" onSubmit={handleSendMessage}>
           <div className="composer-tools">
             <button type="button" title="Attach file"><Paperclip size={16} /></button>
             <button type="button" title="Mention teammate"><AtSign size={16} /></button>
             <button type="button" title="Emoji"><Smile size={16} /></button>
           </div>
-          <input placeholder={`Message ${selectedConversation}... (Type @ to mention, use ... to turn into task/automation)`} value={messageInput} onChange={(e) => setMessageInput(e.target.value)} />
+          <input placeholder={`Message ${selectedConversation}...`} value={messageInput} onChange={(e) => setMessageInput(e.target.value)} />
           <button type="submit" className="button button-dark"><Send size={15} /> Send</button>
         </form>
       </main>
 
-      {/* 3. THREAD PANEL (Slide-over if thread is clicked) */}
       {activeThreadMsg && (
         <aside className="chat-thread-panel">
           <div className="thread-header">
@@ -915,7 +1025,6 @@ function ChatWorkspaceView() {
         </aside>
       )}
 
-      {/* 4. MODAL: CREATE TASK FROM MESSAGE */}
       {showTaskModal && (
         <div className="cookie-modal-backdrop">
           <div className="cookie-modal">
@@ -934,7 +1043,6 @@ function ChatWorkspaceView() {
         </div>
       )}
 
-      {/* 5. MODAL: CREATE AUTOMATION FROM MESSAGE */}
       {showAutomationModal && (
         <div className="cookie-modal-backdrop">
           <div className="cookie-modal">
@@ -957,7 +1065,6 @@ function ChatWorkspaceView() {
         </div>
       )}
 
-      {/* 6. MODAL: MARLOW AI ASSISTANT */}
       {showAiModal && (
         <div className="cookie-modal-backdrop">
           <div className="cookie-modal">
@@ -990,15 +1097,127 @@ function ChatWorkspaceView() {
   );
 }
 
+// -------------------------------------------------------------
+// DASHBOARD VIEW (Matching Zapier Upload 1 & 2 Layout)
+// -------------------------------------------------------------
 function DashboardView() {
-  return <><div className="dashboard-greeting"><div><div className="section-kicker">Tuesday, 14 October 2025</div><h2>Good morning, Jamie.</h2><p>Here’s what needs your attention today.</p></div><button className="button button-dark" onClick={() => goTo('meetings')}><Plus size={15} /> Add meeting</button></div><div className="stat-grid"><StatCard title="Today’s meetings" value="6" icon={CalendarDays} /><StatCard title="Open tasks" value="12" icon={ListChecks} /><StatCard title="Follow-ups" value="5" icon={Users} /><StatCard title="Overdue" value="2" icon={Clock3} danger /></div><div className="dashboard-columns"><Panel title="Today’s priorities" kicker="Your next actions"><div className="priority-list"><Priority time="09:00" title="Team meeting" detail="Weekly operations review" type="meeting" /><Priority time="10:30" title="Client call" detail="Acme · Renewal discussion" type="meeting" /><Priority time="12:00" title="Send proposal" detail="Owner: Jamie Doyle" type="task" /><Priority time="15:00" title="Follow up with Acme" detail="Due today" type="follow" /></div><button className="panel-link" onClick={() => goTo('tasks')}>View all tasks <ArrowRight size={14} /></button></Panel><Panel title="AI Insights" kicker="Product examples only"><div className="insight-list"><Insight text="You have 3 commitments due this week." /><Insight text="You have 2 clients waiting for follow-up." /><Insight text="The proposal discussed yesterday has not been sent yet." /></div><button className="panel-link" onClick={() => goTo('assistant')}>Ask the assistant <ArrowRight size={14} /></button></Panel></div><div className="dashboard-columns lower"><Panel title="Momentum this week" kicker="Operations overview"><div className="dashboard-chart"><div className="chart-bars"><i /><i /><i /><i /><i /><i /><i /></div><div className="chart-line" /></div><div className="chart-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div></Panel><Panel title="Latest activity" kicker="What’s moving"><div className="activity-list"><Activity title="Weekly review published" detail="12 minutes ago" icon={FileText} /><Activity title="New action item added" detail="1 hour ago" icon={ListChecks} /><Activity title="Meeting summary ready" detail="3 hours ago" icon={Sparkles} /></div></Panel></div></>;
+  const [copilotQuery, setCopilotQuery] = useState('');
+
+  return (
+    <div className="zapier-dashboard-main-content">
+      {/* Zapier Trial / Promo Banner matching Upload 1 */}
+      <div className="zapier-trial-banner">
+        <div className="trial-banner-left">
+          <span className="trial-days-box">13</span>
+          <div className="trial-text-wrap">
+            <b>Get $5 off your first month of Pro</b>
+            <span>Multi-step Zaps, premium apps, and AI steps, all unlocked for you.</span>
+          </div>
+        </div>
+        <div className="trial-banner-actions">
+          <button className="text-button" onClick={() => goTo('pricing')}>Compare all plans</button>
+          <button className="button button-primary-zap" onClick={() => goTo('billing')}>Claim discount</button>
+        </div>
+      </div>
+
+      {/* Copilot Automation Banner matching Upload 1 */}
+      <div className="zapier-copilot-hero-card">
+        <h2 className="zapier-hero-title">What would you like to automate?</h2>
+        <div className="copilot-input-box-wrap-zap">
+          <div className="copilot-header-tag">
+            <Sparkles size={14} /> <b>Copilot</b>
+          </div>
+          <input 
+            placeholder="Enter an idea or app name to get started" 
+            value={copilotQuery} 
+            onChange={(e) => setCopilotQuery(e.target.value)} 
+          />
+          <div className="copilot-bottom-actions-zap">
+            <button className="mic-icon-btn"><Mic size={15} /></button>
+            <button className="send-arrow-btn-zap" onClick={() => { if (copilotQuery) alert(`Copilot executing automation for: ${copilotQuery}`); }}><ArrowRight size={15} /></button>
+          </div>
+        </div>
+        <small className="copilot-footer-note">Copilot is AI and can make mistakes. Please double-check responses.</small>
+      </div>
+
+      {/* Start from scratch cards matching Upload 1 bottom section */}
+      <div className="zapier-scratch-section">
+        <h3>Start from scratch</h3>
+        <div className="zapier-scratch-grid">
+          <div className="scratch-card" onClick={() => goTo('chat')}>
+            <span className="scratch-icon zap"><ZapIcon size={18} /></span>
+            <div>
+              <b>Zap</b>
+              <small>Automated workflows</small>
+            </div>
+          </div>
+          <div className="scratch-card" onClick={() => goTo('assistant')}>
+            <span className="scratch-icon agent"><Sparkles size={18} /></span>
+            <div>
+              <b>Agent</b>
+              <small>AI teammates</small>
+            </div>
+          </div>
+          <div className="scratch-card" onClick={() => goTo('tasks')}>
+            <span className="scratch-icon table"><LayoutGrid size={18} /></span>
+            <div>
+              <b>Table</b>
+              <small>Automated data</small>
+            </div>
+          </div>
+          <div className="scratch-card" onClick={() => goTo('memory')}>
+            <span className="scratch-icon mcp"><FolderKanban size={18} /></span>
+            <div>
+              <b>MCP</b>
+              <small>AI tool integrations</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Original Marlow metric cards below */}
+      <div className="stat-grid" style={{ marginTop: '30px' }}>
+        <StatCard title="Today’s meetings" value="6" icon={CalendarDays} />
+        <StatCard title="Open tasks" value="12" icon={ListChecks} />
+        <StatCard title="Follow-ups" value="5" icon={Users} />
+        <StatCard title="Overdue" value="2" icon={Clock3} danger />
+      </div>
+
+      <div className="dashboard-columns" style={{ marginTop: '20px' }}>
+        <Panel title="Today’s priorities" kicker="Your next actions">
+          <div className="priority-list">
+            <Priority time="09:00" title="Team meeting" detail="Weekly operations review" type="meeting" />
+            <Priority time="10:30" title="Client call" detail="Acme · Renewal discussion" type="meeting" />
+            <Priority time="12:00" title="Send proposal" detail="Owner: Jamie Doyle" type="task" />
+            <Priority time="15:00" title="Follow up with Acme" detail="Due today" type="follow" />
+          </div>
+          <button className="panel-link" onClick={() => goTo('tasks')}>View all tasks <ArrowRight size={14} /></button>
+        </Panel>
+        <Panel title="AI Insights" kicker="Product examples only">
+          <div className="insight-list">
+            <Insight text="You have 3 commitments due this week." />
+            <Insight text="You have 2 clients waiting for follow-up." />
+            <Insight text="The proposal discussed yesterday has not been sent yet." />
+          </div>
+          <button className="panel-link" onClick={() => goTo('assistant')}>Ask the assistant <ArrowRight size={14} /></button>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function ZapIcon({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  );
 }
 
 function StatCard({ title, value, icon: Icon, danger = false }: { title: string; value: string; icon: typeof CalendarDays; danger?: boolean }) { return <div className={`stat-card ${danger ? 'danger-card' : ''}`}><span className="stat-icon"><Icon size={16} /></span><div><span>{title}</span><strong>{value}</strong></div><MoreHorizontal size={16} className="stat-more" /></div>; }
 function Panel({ title, kicker, children }: { title: string; kicker: string; children: ReactNode }) { return <section className="panel"><div className="panel-heading"><div><div className="section-kicker">{kicker}</div><h2>{title}</h2></div><MoreHorizontal size={17} /></div>{children}</section>; }
 function Priority({ time, title, detail, type }: { time: string; title: string; detail: string; type: 'meeting' | 'task' | 'follow' }) { return <div className="priority"><time>{time}</time><span className={`priority-type ${type}`} /> <div><b>{title}</b><small>{detail}</small></div><ChevronRight size={15} /></div>; }
 function Insight({ text }: { text: string }) { return <div className="insight"><Sparkles size={15} /><span>{text}</span></div>; }
-function Activity({ title, detail, icon: Icon }: { title: string; detail: string; icon: typeof FileText }) { return <div className="activity"><span><Icon size={14} /></span><div><b>{title}</b><small>{detail}</small></div></div>; }
 
 function MeetingsView() {
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
@@ -1044,22 +1263,8 @@ function AssistantView() {
     if (!query.trim()) return;
     const userQ = query.trim();
     const newMessages = [...messages, { sender: 'user' as const, text: userQ }];
-    
-    // Check if query is related to business, tasks, meetings, or Marlow workspace
     const lower = userQ.toLowerCase();
-    const isBusinessRelated = 
-      lower.includes('todo') || 
-      lower.includes('task') || 
-      lower.includes('meeting') || 
-      lower.includes('follow') || 
-      lower.includes('client') || 
-      lower.includes('proposal') || 
-      lower.includes('business') || 
-      lower.includes('marlow') || 
-      lower.includes('work') || 
-      lower.includes('team') || 
-      lower.includes('summary') || 
-      lower.includes('miss');
+    const isBusinessRelated = lower.includes('todo') || lower.includes('task') || lower.includes('meeting') || lower.includes('follow') || lower.includes('client') || lower.includes('proposal') || lower.includes('business') || lower.includes('marlow') || lower.includes('work') || lower.includes('team') || lower.includes('summary') || lower.includes('miss');
 
     if (!isBusinessRelated) {
       newMessages.push({
@@ -1080,7 +1285,6 @@ function AssistantView() {
         subtext: 'Found relevant records across Sales Team chat and shared files. All operations are currently on schedule.'
       });
     }
-
     setMessages(newMessages);
     setQuestion('');
   };
@@ -1148,15 +1352,213 @@ function MemoryView() {
   return <><div className="memory-toolbar"><div className="memory-search"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search your business memory" /></div><button className="button button-dark"><Plus size={15} /> Add memory</button></div><div className="memory-categories">{['All', 'People', 'Clients', 'Decisions', 'Processes', 'Meetings', 'Commitments'].map((category, index) => <button className={index === 0 ? 'active' : ''} key={category}>{category}</button>)}</div><div className="memory-grid">{visible.map((memory) => <article className="memory-card" key={memory.title}><div className="memory-card-top"><span className="memory-icon"><memory.icon size={16} /></span><span>{memory.category}</span></div><h3>{memory.title}</h3><p>{memory.body}</p><button className="card-link">Open memory <ArrowRight size={14} /></button></article>)}</div></>;
 }
 
-function SettingsView() {
-  const [section, setSection] = useState('Profile');
-  const sections = ['Profile', 'Company', 'Team', 'Notifications', 'Integrations', 'Security', 'Billing'];
-  return <div className="settings-layout"><aside className="settings-nav">{sections.map((item) => <button className={section === item ? 'active' : ''} key={item} onClick={() => setSection(item)}>{item}<ChevronRight size={14} /></button>)}</aside><section className="settings-panel"><div className="section-kicker">Workspace settings</div><h2>{section}</h2><p className="settings-description">Manage your {section.toLowerCase()} preferences for Marlow.</p><div className="settings-form">{section === 'Profile' && <><SettingField label="First name" value="Jamie" /><SettingField label="Last name" value="Doyle" /><SettingField label="Work email" value="jamie@northstar.studio" /></>}{section === 'Company' && <><SettingField label="Business name" value="Northstar Studio" /><SettingField label="Industry" value="Professional services" /><SettingField label="Team size" value="11–50 people" /></>}{section === 'Notifications' && <><ToggleRow title="Meeting summaries" detail="Notify me when a summary is ready" /><ToggleRow title="Due date reminders" detail="Keep upcoming commitments visible" /><ToggleRow title="Weekly review" detail="Send a considered weekly overview" /></>}{section === 'Integrations' && <><IntegrationRow name="Calendar" detail="Connect when you’re ready" /><IntegrationRow name="Email" detail="Connect when you’re ready" /><IntegrationRow name="CRM" detail="Available on Pro" /></>}{section !== 'Profile' && section !== 'Company' && section !== 'Notifications' && section !== 'Integrations' && <div className="empty-settings"><ShieldCheck size={22} /><b>{section} settings are ready to configure.</b><p>This product preview keeps connections and account changes offline until you choose to enable them.</p></div>}<button className="button button-dark">Save changes</button></div></section></div>;
+// -------------------------------------------------------------
+// SETTINGS VIEW (Matching Zapier Settings Upload 4 Layout + Personalization / Dark & Light Mode)
+// -------------------------------------------------------------
+function SettingsView({ theme, setTheme }: { theme: 'light' | 'dark'; setTheme: (t: 'light' | 'dark') => void }) {
+  const [activeTab, setActiveTab] = useState<'profile' | 'personalization' | 'notifications' | 'security' | 'billing' | 'members' | 'audit'>('profile');
+
+  return (
+    <div className="zapier-settings-layout">
+      {/* Settings Sidebar matching Zapier Upload 4 */}
+      <aside className="zapier-settings-sidebar">
+        <button className={`zapier-settings-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
+          <Users size={16} /> My profile
+        </button>
+        <button className={`zapier-settings-nav-item ${activeTab === 'personalization' ? 'active' : ''}`} onClick={() => setActiveTab('personalization')}>
+          <Palette size={16} /> Personalization & Appearance
+        </button>
+        <button className={`zapier-settings-nav-item ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => setActiveTab('notifications')}>
+          <Bell size={16} /> Notifications
+        </button>
+        <button className={`zapier-settings-nav-item ${activeTab === 'security' ? 'active' : ''}`} onClick={() => setActiveTab('security')}>
+          <ShieldCheck size={16} /> Security and data
+        </button>
+        <button className={`zapier-settings-nav-item ${activeTab === 'billing' ? 'active' : ''}`} onClick={() => setActiveTab('billing')}>
+          <CreditCard size={16} /> Billing & usage
+        </button>
+        <button className={`zapier-settings-nav-item ${activeTab === 'members' ? 'active' : ''}`} onClick={() => setActiveTab('members')}>
+          <Users size={16} /> Members <Lock size={12} style={{ marginLeft: 'auto' }} />
+        </button>
+        <button className={`zapier-settings-nav-item ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => setActiveTab('audit')}>
+          <FileText size={16} /> Audit log <Lock size={12} style={{ marginLeft: 'auto' }} />
+        </button>
+      </aside>
+
+      {/* Settings Main Content Pane matching Upload 4 */}
+      <section className="zapier-settings-content-pane">
+        {activeTab === 'profile' && (
+          <div className="zapier-settings-section-box">
+            <h2>My profile</h2>
+            <div className="profile-gravatar-row">
+              <span className="zapier-profile-avatar-lg">mo</span>
+              <div>
+                <a href="#gravatar" onClick={(e) => { e.preventDefault(); alert('Edit Gravatar flow triggered'); }}>Edit Gravatar ↗</a>
+                <small>Connected via Google / Apple account</small>
+              </div>
+            </div>
+
+            <div className="settings-field-group">
+              <label>Email (required)</label>
+              <div className="input-with-action">
+                <input readOnly defaultValue="michaelch876@gmail.com" />
+                <button type="button" onClick={() => alert('Change email flow')}>CHANGE EMAIL</button>
+              </div>
+            </div>
+
+            <div className="settings-field-group">
+              <label>Password (required)</label>
+              <div className="input-with-action">
+                <input readOnly type="password" defaultValue="********" />
+                <button type="button" onClick={() => alert('Change password flow')}>CHANGE PASSWORD</button>
+              </div>
+            </div>
+
+            <div className="settings-field-group">
+              <label>First name (required)</label>
+              <input defaultValue="michael" />
+            </div>
+
+            <div className="settings-field-group">
+              <label>Last name (required)</label>
+              <input defaultValue="onuegbu" />
+            </div>
+
+            <div className="settings-field-group">
+              <label>Company</label>
+              <input placeholder="Your company name" defaultValue="Northstar Studio" />
+            </div>
+
+            <button className="button button-dark" style={{ marginTop: '20px' }} onClick={() => alert('Profile changes saved!')}>Save changes</button>
+          </div>
+        )}
+
+        {activeTab === 'personalization' && (
+          <div className="zapier-settings-section-box">
+            <h2>Personalization & Appearance</h2>
+            <p className="zapier-settings-desc">Customize how Marlow looks and feels across your workspaces.</p>
+            
+            <div className="theme-toggle-card-row">
+              <div>
+                <b>Interface Theme</b>
+                <small>Choose between Light Mode and Dark Mode for your workspace.</small>
+              </div>
+              <div className="theme-buttons-group">
+                <button className={`theme-mode-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => setTheme('light')}>
+                  <Sun size={15} /> Light
+                </button>
+                <button className={`theme-mode-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')}>
+                  <Moon size={15} /> Dark
+                </button>
+              </div>
+            </div>
+
+            <div className="settings-field-group" style={{ marginTop: '25px' }}>
+              <label>Workspace Accent Colour</label>
+              <div className="color-swatches-row">
+                <span className="swatch lime active" />
+                <span className="swatch orange" />
+                <span className="swatch blue" />
+                <span className="swatch purple" />
+              </div>
+            </div>
+
+            <div className="settings-field-group" style={{ marginTop: '20px' }}>
+              <label>Default Start Page</label>
+              <select defaultValue="dashboard">
+                <option value="dashboard">Dashboard</option>
+                <option value="chat">Chat & Workspace</option>
+                <option value="meetings">Meetings</option>
+                <option value="tasks">Tasks</option>
+              </select>
+            </div>
+
+            <button className="button button-dark" style={{ marginTop: '20px' }} onClick={() => alert('Personalization preferences saved!')}>Save preferences</button>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div className="zapier-settings-section-box">
+            <h2>Notifications</h2>
+            <p className="zapier-settings-desc">Manage how you receive alerts and team updates.</p>
+            <ToggleRow title="Meeting summaries" detail="Notify me when a summary is ready" />
+            <ToggleRow title="Due date reminders" detail="Keep upcoming commitments visible" />
+            <ToggleRow title="Weekly review" detail="Send a considered weekly overview" />
+            <button className="button button-dark" style={{ marginTop: '20px' }} onClick={() => alert('Notification settings saved!')}>Save changes</button>
+          </div>
+        )}
+
+        {activeTab === 'security' && (
+          <div className="zapier-settings-section-box">
+            <h2>Security and data</h2>
+            <p className="zapier-settings-desc">Manage your account security, two-factor authentication, and data privacy settings.</p>
+            <div className="security-status-card">
+              <ShieldCheck size={20} />
+              <div>
+                <b>Two-factor authentication is enabled</b>
+                <small>Your account is protected with authenticator app verification.</small>
+              </div>
+            </div>
+            <button className="button button-outline" style={{ marginTop: '20px' }}>Manage 2FA settings</button>
+          </div>
+        )}
+
+        {activeTab === 'billing' && (
+          <div className="zapier-settings-section-box">
+            <h2>Billing & usage</h2>
+            <p className="zapier-settings-desc">Current plan: <strong>Growth (£59/month)</strong></p>
+            <button className="button button-dark" onClick={() => goTo('billing')}>View billing details & plans</button>
+          </div>
+        )}
+
+        {(activeTab === 'members' || activeTab === 'audit') && (
+          <div className="zapier-settings-section-box">
+            <h2>{activeTab === 'members' ? 'Members Management' : 'Audit Log'}</h2>
+            <div className="empty-settings">
+              <ShieldCheck size={22} />
+              <b>This feature requires Pro or Plus plan.</b>
+              <p>Upgrade your workspace to unlock advanced team management and security audit logs.</p>
+              <button className="button button-dark" style={{ marginTop: '15px' }} onClick={() => goTo('pricing')}>Explore plans</button>
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  );
 }
-function SettingField({ label, value }: { label: string; value: string }) { return <label className="setting-field">{label}<input defaultValue={value} /></label>; }
+
 function ToggleRow({ title, detail }: { title: string; detail: string }) { const [on, setOn] = useState(true); return <div className="toggle-row"><div><b>{title}</b><small>{detail}</small></div><button className={on ? 'toggle on' : 'toggle'} onClick={() => setOn(!on)}><span /></button></div>; }
-function IntegrationRow({ name, detail }: { name: string; detail: string }) { return <div className="integration-row"><span className="integration-icon">{name.slice(0, 1)}</span><span><b>{name}</b><small>{detail}</small></span><button className="button button-outline">Connect</button></div>; }
-function BillingView() { return <><div className="billing-intro"><div><div className="section-kicker">Current plan</div><h2>Growth</h2><p>£59 / month · no payment connected</p></div><button className="button button-dark" onClick={() => goTo('pricing')}>Compare plans <ArrowRight size={15} /></button></div><div className="billing-grid"><div className="billing-card"><div className="section-kicker">Workspace usage</div><h3>Good room to grow.</h3><Usage label="Meetings" value="18 / unlimited" progress={42} /><Usage label="Team members" value="4 / unlimited" progress={22} /><Usage label="Business memory" value="38 entries" progress={38} /></div><div className="billing-card billing-note"><ShieldCheck size={20} /><h3>Payments are not connected</h3><p>This preview shows the place where plan details, invoices and payment settings will live when billing is enabled.</p><button className="text-button" onClick={() => goTo('pricing')}>View all plans <ArrowRight size={15} /></button></div></div></>; }
+
+function BillingView() { 
+  return (
+    <>
+      <div className="billing-intro">
+        <div>
+          <div className="section-kicker">Current plan</div>
+          <h2>Growth</h2>
+          <p>£59 / month · no payment connected</p>
+        </div>
+        <button className="button button-dark" onClick={() => goTo('pricing')}>Compare plans <ArrowRight size={15} /></button>
+      </div>
+      <div className="billing-grid">
+        <div className="billing-card">
+          <div className="section-kicker">Workspace usage</div>
+          <h3>Good room to grow.</h3>
+          <Usage label="Meetings" value="18 / unlimited" progress={42} />
+          <Usage label="Team members" value="4 / unlimited" progress={22} />
+          <Usage label="Business memory" value="38 entries" progress={38} />
+        </div>
+        <div className="billing-card billing-note">
+          <ShieldCheck size={20} />
+          <h3>Payments are not connected</h3>
+          <p>This preview shows the place where plan details, invoices and payment settings will live when billing is enabled.</p>
+          <button className="text-button" onClick={() => goTo('pricing')}>View all plans <ArrowRight size={15} /></button>
+        </div>
+      </div>
+    </>
+  ); 
+}
+
 function Usage({ label, value, progress }: { label: string; value: string; progress: number }) { return <div className="usage"><div><span>{label}</span><b>{value}</b></div><i><span style={{ width: `${progress}%` }} /></i></div>; }
 
 function MarketingFooter() { return <footer className="site-footer"><div><Logo /><p>Your business,<br />under control.</p></div><div className="footer-links"><div><b>Product</b><button onClick={() => goTo('features')}>Features</button><button onClick={() => goTo('security')}>Security</button></div><div><b>Company</b><button onClick={() => goTo('about')}>About</button><button onClick={() => goTo('contact')}>Contact</button></div><div><b>Legal</b><button onClick={() => goTo('privacy')}>Privacy</button><button onClick={() => goTo('terms')}>Terms</button></div></div><div className="footer-end">© 2026 Marlow. All rights reserved. Made for businesses in motion.</div></footer>; }
