@@ -39,7 +39,6 @@ import {
   LogOut,
   Sun,
   Moon,
-  Sliders,
   Palette
 } from 'lucide-react';
 
@@ -93,9 +92,9 @@ function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   // Dynamic User Profile State stored in localStorage
-  const [userName, setUserName] = useState<string>(() => localStorage.getItem('marlow_user_name') || 'Michael Onuegbu');
-  const [businessName, setBusinessName] = useState<string>(() => localStorage.getItem('marlow_business_name') || 'Northstar Studio');
-  const [userEmail, setUserEmail] = useState<string>(() => localStorage.getItem('marlow_user_email') || 'michaelch876@gmail.com');
+  const [userName, setUserName] = useState<string>(() => localStorage.getItem('marlow_user_name') || '');
+  const [businessName, setBusinessName] = useState<string>(() => localStorage.getItem('marlow_business_name') || '');
+  const [userEmail, setUserEmail] = useState<string>(() => localStorage.getItem('marlow_user_email') || '');
 
   goTo = (next: Route) => {
     setRoute(next);
@@ -129,11 +128,11 @@ function App() {
           route={route} 
           theme={theme} 
           setTheme={setTheme} 
-          userName={userName} 
+          userName={userName || 'User'} 
           setUserName={setUserName}
-          businessName={businessName}
+          businessName={businessName || 'My Business'}
           setBusinessName={setBusinessName}
-          userEmail={userEmail}
+          userEmail={userEmail || 'user@example.com'}
           setUserEmail={setUserEmail}
         />
       ) : route === 'login' || route === 'signup' ? (
@@ -420,21 +419,55 @@ function SecurityPage() {
 
 function AuthPage({ mode, setUserName, setBusinessName, setUserEmail }: { mode: 'login' | 'signup'; setUserName: (n: string) => void; setBusinessName: (b: string) => void; setUserEmail: (e: string) => void }) {
   const login = mode === 'login';
-  const [sent, setSent] = useState(false);
-  const [isAppleModalOpen, setIsAppleModalOpen] = useState(false);
-  
+  const [verificationStep, setVerificationStep] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [authError, setAuthError] = useState('');
+
   const [firstNameInput, setFirstNameInput] = useState('');
   const [lastNameInput, setLastNameInput] = useState('');
   const [businessInput, setBusinessInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
-  
+  const [passwordInput, setPasswordInput] = useState('');
+
+  const [isAppleModalOpen, setIsAppleModalOpen] = useState(false);
   const appleLogoUrl = "public/F6B419A2-CC4C-4734-9D7A-CE043558BD14.png";
 
-  const submit = (event: FormEvent<HTMLFormElement>) => { 
-    event.preventDefault(); 
-    const fullName = firstNameInput && lastNameInput ? `${firstNameInput} ${lastNameInput}` : 'Michael Onuegbu';
-    const biz = businessInput || 'Northstar Studio';
-    const email = emailInput || 'michaelch876@gmail.com';
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setAuthError('');
+
+    if (login) {
+      // Check if user account exists in storage
+      const savedEmail = localStorage.getItem('marlow_user_email');
+      const savedName = localStorage.getItem('marlow_user_name');
+      const savedBiz = localStorage.getItem('marlow_business_name');
+
+      if (!savedEmail || savedEmail.toLowerCase() !== emailInput.trim().toLowerCase()) {
+        setAuthError('No account found with this email address. Please check your spelling or create an account.');
+        return;
+      }
+
+      // Successful login
+      setUserName(savedName || 'User');
+      setBusinessName(savedBiz || 'My Business');
+      setUserEmail(savedEmail);
+      goTo('dashboard');
+    } else {
+      // Move to Verification Code step for Sign Up
+      setVerificationStep(true);
+    }
+  };
+
+  const handleVerifyCode = (e: FormEvent) => {
+    e.preventDefault();
+    if (verificationCode.trim().length !== 6) {
+      setAuthError('Please enter a valid 6-digit verification code.');
+      return;
+    }
+
+    const fullName = `${firstNameInput.trim()} ${lastNameInput.trim()}`;
+    const biz = businessInput.trim();
+    const email = emailInput.trim();
 
     setUserName(fullName);
     setBusinessName(biz);
@@ -444,9 +477,9 @@ function AuthPage({ mode, setUserName, setBusinessName, setUserEmail }: { mode: 
     localStorage.setItem('marlow_business_name', biz);
     localStorage.setItem('marlow_user_email', email);
 
-    setSent(true); 
+    goTo('onboarding');
   };
-  
+
   return (
     <div className="auth-shell">
       <aside className="auth-side">
@@ -461,18 +494,33 @@ function AuthPage({ mode, setUserName, setBusinessName, setUserEmail }: { mode: 
         <button className="auth-back" onClick={() => goTo('home')}><ArrowLeft size={15} /> Back to site</button>
         <div className="auth-form-wrap">
           <div className="section-kicker">{login ? 'Welcome back' : 'Start with Marlow'}</div>
-          <h1>{login ? 'Good to see you.' : 'Build a clearer day.'}</h1>
-          <p>{login ? 'Enter your details to continue to your workspace.' : 'Create your workspace and get your business under control.'}</p>
-          
-          {sent ? (
-            <div className="success-box">
-              <Check size={20} />
-              <b>{login ? 'You’re on your way in.' : 'Your workspace is ready to shape.'}</b>
-              <span>This preview keeps everything local for now. Continue to explore the product.</span>
-              <button className="button button-dark" onClick={() => goTo(login ? 'dashboard' : 'onboarding')}>Continue <ArrowRight size={15} /></button>
+          <h1>{verificationStep ? 'Check your email' : login ? 'Good to see you.' : 'Build a clearer day.'}</h1>
+          <p>{verificationStep ? `We've sent a 6-digit confirmation code to ${emailInput}.` : login ? 'Enter your details to continue to your workspace.' : 'Create your workspace and get your business under control.'}</p>
+
+          {authError && (
+            <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', padding: '12px 14px', borderRadius: '6px', fontSize: '12px', marginBottom: '16px', fontWeight: 600 }}>
+              {authError}
             </div>
+          )}
+
+          {verificationStep ? (
+            <form className="auth-form" onSubmit={handleVerifyCode}>
+              <label>
+                6-Digit Verification Code
+                <input 
+                  required 
+                  maxLength={6}
+                  value={verificationCode} 
+                  onChange={(e) => setVerificationCode(e.target.value)} 
+                  placeholder="e.g. 123456" 
+                  style={{ letterSpacing: '4px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}
+                />
+              </label>
+              <button className="button button-dark full-button" type="submit">Verify Code & Continue <ArrowRight size={15} /></button>
+              <button type="button" className="text-button" style={{ marginTop: '10px', justifyContent: 'center' }} onClick={() => setVerificationStep(false)}>← Change email</button>
+            </form>
           ) : (
-            <form className="auth-form" onSubmit={submit}>
+            <form className="auth-form" onSubmit={handleSubmit}>
               {!login && (
                 <div className="form-two">
                   <label>First name<input required value={firstNameInput} onChange={(e) => setFirstNameInput(e.target.value)} placeholder="Jamie" /></label>
@@ -481,13 +529,26 @@ function AuthPage({ mode, setUserName, setBusinessName, setUserEmail }: { mode: 
               )}
               {!login && <label>Business name<input required value={businessInput} onChange={(e) => setBusinessInput(e.target.value)} placeholder="Your business" /></label>}
               <label>Work email<input required type="email" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} placeholder="you@company.com" /></label>
-              <label>Password<input required type="password" placeholder="At least 8 characters" /></label>
+              <label>Password<input required type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="At least 8 characters" /></label>
               {login && <button type="button" className="forgot">Forgot password?</button>}
               <button className="button button-dark full-button" type="submit">{login ? 'Log in' : 'Create account'} <ArrowRight size={15} /></button>
               
               <div className="form-divider"><span>or continue with</span></div>
               
-              <button type="button" className="button button-social" onClick={() => { localStorage.setItem('marlow_user_name', 'Google User'); localStorage.setItem('marlow_business_name', 'My Agency'); goTo('dashboard'); }}><Command size={15} /> Continue with Google</button>
+              <button type="button" className="button button-social" onClick={() => {
+                const name = "Google User";
+                const biz = "Google Workspace";
+                const email = "user@gmail.com";
+                setUserName(name);
+                setBusinessName(biz);
+                setUserEmail(email);
+                localStorage.setItem('marlow_user_name', name);
+                localStorage.setItem('marlow_business_name', biz);
+                localStorage.setItem('marlow_user_email', email);
+                goTo('dashboard');
+              }}>
+                <Command size={15} /> Continue with Google
+              </button>
               
               <button type="button" className="button button-social" onClick={() => setIsAppleModalOpen(true)}>
                 <svg width="16" height="16" viewBox="0 0 170 170" fill="currentColor">
@@ -515,20 +576,28 @@ function AuthPage({ mode, setUserName, setBusinessName, setUserEmail }: { mode: 
               <p>Sign in to <strong>Marlow</strong> using your Apple Account.</p>
             </div>
 
-            <div className="apple-account-card" onClick={() => { setIsAppleModalOpen(false); goTo('dashboard'); }}>
-              <div className="apple-account-avatar">MO</div>
+            <div className="apple-account-card" onClick={() => {
+              const name = "Apple User";
+              const biz = "Apple Studio";
+              const email = "user@icloud.com";
+              setUserName(name);
+              setBusinessName(biz);
+              setUserEmail(email);
+              localStorage.setItem('marlow_user_name', name);
+              localStorage.setItem('marlow_business_name', biz);
+              localStorage.setItem('marlow_user_email', email);
+              setIsAppleModalOpen(false);
+              goTo('dashboard');
+            }}>
+              <div className="apple-account-avatar">AU</div>
               <div className="apple-account-info">
-                <b>Michael Onuegbu</b>
-                <small>Your account</small>
+                <b>Apple Account User</b>
+                <small>iCloud Sign In</small>
               </div>
             </div>
 
             <button className="apple-signin-btn" onClick={() => { setIsAppleModalOpen(false); goTo('dashboard'); }}>
               Sign In
-            </button>
-
-            <button className="apple-alt-link" onClick={() => alert('Switch Apple Account flow triggered')}>
-              Use a different Apple Account
             </button>
           </div>
         </div>
@@ -539,7 +608,7 @@ function AuthPage({ mode, setUserName, setBusinessName, setUserEmail }: { mode: 
 
 function Onboarding({ setBusinessName }: { setBusinessName: (b: string) => void }) {
   const [step, setStep] = useState(1);
-  const [bizInput, setBizInput] = useState('');
+  const [bizInput, setBizInput] = useState(() => localStorage.getItem('marlow_business_name') || '');
 
   const questions = [
     { eyebrow: '01 / Your workspace', title: 'What’s your business called?', body: 'This will be the home for your team’s work.', input: true },
@@ -553,8 +622,8 @@ function Onboarding({ setBusinessName }: { setBusinessName: (b: string) => void 
 
   const handleNext = () => {
     if (step === 1 && bizInput.trim()) {
-      setBusinessName(bizInput);
-      localStorage.setItem('marlow_business_name', bizInput);
+      setBusinessName(bizInput.trim());
+      localStorage.setItem('marlow_business_name', bizInput.trim());
     }
     if (step < 6) {
       setStep(step + 1);
@@ -622,13 +691,13 @@ function AppShell({
 
   const activeLabel = navItems.find((item) => item.route === route)?.label ?? (route === 'settings' ? 'Settings' : route === 'billing' ? 'Billing' : 'Dashboard');
 
-  // Compute initials for avatars dynamically
   const initials = userName
     .split(' ')
+    .filter(Boolean)
     .map(n => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2) || 'U';
 
   return (
     <div className={`app-shell ${theme === 'dark' ? 'dark-app-shell' : ''}`}>
@@ -804,10 +873,10 @@ function AppContent({
   if (route === 'dashboard') return <DashboardView userName={userName} />;
   if (route === 'meetings') return <MeetingsView />;
   if (route === 'chat') return <ChatWorkspaceView userName={userName} />;
-  if (route === 'tasks') return <TasksView />;
+  if (route === 'tasks') return <TasksView userName={userName} />;
   if (route === 'follow-ups') return <FollowUpsView />;
-  if (route === 'calendar') return <CalendarView />;
-  if (route === 'team') return <TeamView />;
+  if (route === 'calendar') return <CalendarView businessName={businessName} />;
+  if (route === 'team') return <TeamView userName={userName} />;
   if (route === 'assistant') return <AssistantView />;
   if (route === 'memory') return <MemoryView />;
   if (route === 'settings') return <SettingsView theme={theme} setTheme={setTheme} userName={userName} setUserName={setUserName} businessName={businessName} setBusinessName={setBusinessName} userEmail={userEmail} setUserEmail={setUserEmail} />;
@@ -1254,7 +1323,7 @@ function ChatWorkspaceView({ userName }: { userName: string }) {
 // -------------------------------------------------------------
 function DashboardView({ userName }: { userName: string }) {
   const [copilotQuery, setCopilotQuery] = useState('');
-  const firstName = userName.split(' ')[0] || 'Jamie';
+  const firstName = userName.split(' ')[0] || 'there';
 
   return (
     <div className="zapier-dashboard-main-content">
@@ -1374,10 +1443,10 @@ function MeetingsView() {
   return <><div className="page-toolbar"><div className="segmented"><button className={tab === 'upcoming' ? 'active' : ''} onClick={() => setTab('upcoming')}>Upcoming <span>3</span></button><button className={tab === 'past' ? 'active' : ''} onClick={() => setTab('past')}>Past <span>18</span></button></div><button className="button button-dark"><Plus size={15} /> Add meeting</button></div><div className="meeting-list">{meetings.map(([time, title, detail, attendees]) => <button className="meeting-row" key={title} onClick={() => goTo('meetings')}><span className="meeting-time">{time}<small>{tab === 'upcoming' ? 'OCT 14' : 'OCT 13'}</small></span><span className="meeting-status" /><span className="meeting-info"><b>{title}</b><small>{detail}</small></span><span className="meeting-attendees"><Users size={14} /> {attendees}</span><ChevronRight size={16} /></button>)}</div><div className="meeting-note"><Sparkles size={17} /><div><b>Meeting intelligence stays in one place.</b><span>Open any meeting to see notes, summaries, decisions, action items and follow-ups together.</span></div></div></>;
 }
 
-function TasksView() {
+function TasksView({ userName }: { userName: string }) {
   const [filter, setFilter] = useState('All');
   const [done, setDone] = useState<string[]>([]);
-  const ownerName = localStorage.getItem('marlow_user_name') || 'Michael Onuegbu';
+  const ownerName = userName || 'User';
   const tasks = [{ title: 'Send proposal to Acme', owner: ownerName, due: 'Due today', priority: 'High', status: 'To Do', meeting: 'Client call' }, { title: 'Review website copy', owner: 'Sam Okafor', due: 'Tomorrow', priority: 'Medium', status: 'In Progress', meeting: 'Product review' }, { title: 'Confirm Q4 planning date', owner: 'Alex Kim', due: '16 Oct', priority: 'Low', status: 'To Do', meeting: 'Growth planning' }, { title: 'Share weekly operations notes', owner: ownerName, due: '12 Oct', priority: 'High', status: 'Overdue', meeting: 'Weekly review' }];
   const visible = filter === 'All' ? tasks : tasks.filter((task) => filter === 'My Tasks' ? task.owner === ownerName : filter === 'Overdue' ? task.status === 'Overdue' : filter === 'Completed' ? done.includes(task.title) : filter === 'Due Today' ? task.due === 'Due today' : true);
   return <><div className="page-toolbar"><div className="filter-tabs">{['All', 'My Tasks', 'Due Today', 'This Week', 'Overdue', 'Completed'].map((item) => <button className={filter === item ? 'active' : ''} key={item} onClick={() => setFilter(item)}>{item}</button>)}</div><button className="button button-dark"><Plus size={15} /> Add task</button></div><div className="table-card"><div className="table-head"><span>Task</span><span>Owner</span><span>Due</span><span>Priority</span><span>Status</span><span /></div>{visible.map((task) => <div className="task-row" key={task.title}><button className={`task-check ${done.includes(task.title) ? 'checked' : ''}`} onClick={() => setDone(done.includes(task.title) ? done.filter((title) => title !== task.title) : [...done, task.title])}>{done.includes(task.title) && <Check size={12} />}</button><span className="task-name"><b>{task.title}</b><small>From {task.meeting}</small></span><span className="owner"><span className="table-avatar">{task.owner.split(' ').map((name) => name[0]).join('')}</span>{task.owner}</span><span className={task.due === 'Due today' || task.status === 'Overdue' ? 'danger-text' : ''}>{task.due}</span><span className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</span><span className={`status-tag ${task.status.toLowerCase().replace(' ', '-')}`}>{task.status}</span><MoreHorizontal size={16} /></div>)}</div></>;
@@ -1388,17 +1457,17 @@ function FollowUpsView() {
   return <><div className="page-toolbar"><p className="toolbar-description">Keep commitments moving after the conversation.</p><button className="button button-dark"><Plus size={15} /> Add follow-up</button></div><div className="follow-grid">{followUps.map(([company, person, reason, due, status]) => <button className="follow-card" key={company} onClick={() => undefined}><div className="follow-top"><span className="company-badge">{company.slice(0, 1)}</span><span className="status-tag open">{status}</span></div><h3>{reason}</h3><p>{person} · {company}</p><div className="follow-bottom"><span><Clock3 size={13} /> {due}</span><ChevronRight size={15} /></div></button>)}</div></>;
 }
 
-function CalendarView() {
+function CalendarView({ businessName }: { businessName: string }) {
   const days = ['Mon 13', 'Tue 14', 'Wed 15', 'Thu 16', 'Fri 17'];
-  const businessName = localStorage.getItem('marlow_business_name') || 'Northstar Studio';
+  const biz = businessName || 'My Business';
   const blocks = [{ day: 1, start: 1, height: 64, title: 'Team meeting', tone: 'dark' }, { day: 1, start: 4, height: 82, title: 'Client call', tone: 'lime' }, { day: 2, start: 2, height: 65, title: 'Growth planning', tone: 'soft' }, { day: 3, start: 5, height: 75, title: 'Product review', tone: 'dark' }, { day: 4, start: 1, height: 70, title: 'Finance review', tone: 'soft' }];
-  return <><div className="calendar-toolbar"><button className="button button-outline"><ArrowLeft size={14} /> Sep</button><b>14 – 18 October 2025</b><button className="button button-outline">Nov <ArrowRight size={14} /></button><button className="button button-dark"><Plus size={15} /> Add event</button></div><div className="calendar-card"><div className="calendar-grid-head"><span />{days.map((day) => <b className={day.includes('14') ? 'today' : ''} key={day}>{day}</b>)}</div><div className="calendar-grid-body"><div className="time-column">{['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'].map((time) => <span key={time}>{time}</span>)}</div>{days.map((day, dayIndex) => <div className="calendar-day" key={day}>{[...Array(7)].map((_, index) => <i key={index} />)}{blocks.filter((block) => block.day === dayIndex).map((block) => <div key={block.title} className={`calendar-event ${block.tone}`} style={{ top: `${block.start * 58}px`, height: `${block.height}px` }}><b>{block.title}</b><small>{businessName}</small></div>)}</div>)}</div></div></>;
+  return <><div className="calendar-toolbar"><button className="button button-outline"><ArrowLeft size={14} /> Sep</button><b>14 – 18 October 2025</b><button className="button button-outline">Nov <ArrowRight size={14} /></button><button className="button button-dark"><Plus size={15} /> Add event</button></div><div className="calendar-card"><div className="calendar-grid-head"><span />{days.map((day) => <b className={day.includes('14') ? 'today' : ''} key={day}>{day}</b>)}</div><div className="calendar-grid-body"><div className="time-column">{['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'].map((time) => <span key={time}>{time}</span>)}</div>{days.map((day, dayIndex) => <div className="calendar-day" key={day}>{[...Array(7)].map((_, index) => <i key={index} />)}{blocks.filter((block) => block.day === dayIndex).map((block) => <div key={block.title} className={`calendar-event ${block.tone}`} style={{ top: `${block.start * 58}px`, height: `${block.height}px` }}><b>{block.title}</b><small>{biz}</small></div>)}</div>)}</div></div></>;
 }
 
-function TeamView() {
-  const userName = localStorage.getItem('marlow_user_name') || 'Michael Onuegbu';
-  const people = [[userName, 'Admin', userName.split(' ').map(n => n[0]).join('').toUpperCase(), 'Operations'], ['Sam Okafor', 'Member', 'SO', 'Product'], ['Alex Kim', 'Member', 'AK', 'Growth'], ['Tara Williams', 'Viewer', 'TW', 'Finance']];
-  return <><div className="page-toolbar"><p className="toolbar-description">The people helping your business move.</p><button className="button button-dark"><Plus size={15} /> Invite teammate</button></div><div className="table-card"><div className="table-head team-head"><span>Person</span><span>Role</span><span>Team</span><span>Last active</span><span /></div>{people.map(([name, role, initials, team]) => <div className="task-row team-row" key={name}><span className="owner"><span className="table-avatar dark-avatar">{initials}</span><b>{name}</b></span><span className="status-tag open">{role}</span><span>{team}</span><span>Today</span><MoreHorizontal size={16} /></div>)}</div></>;
+function TeamView({ userName }: { userName: string }) {
+  const name = userName || 'User';
+  const people = [[name, 'Admin', name.split(' ').map(n => n[0]).join('').toUpperCase(), 'Operations'], ['Sam Okafor', 'Member', 'SO', 'Product'], ['Alex Kim', 'Member', 'AK', 'Growth'], ['Tara Williams', 'Viewer', 'TW', 'Finance']];
+  return <><div className="page-toolbar"><p className="toolbar-description">The people helping your business move.</p><button className="button button-dark"><Plus size={15} /> Invite teammate</button></div><div className="table-card"><div className="table-head team-head"><span>Person</span><span>Role</span><span>Team</span><span>Last active</span><span /></div>{people.map(([n, role, initials, team]) => <div className="task-row team-row" key={n}><span className="owner"><span className="table-avatar dark-avatar">{initials}</span><b>{n}</b></span><span className="status-tag open">{role}</span><span>{team}</span><span>Today</span><MoreHorizontal size={16} /></div>)}</div></>;
 }
 
 function AssistantView() {
@@ -1528,7 +1597,6 @@ function SettingsView({
 }) {
   const [activeTab, setActiveTab] = useState<'profile' | 'personalization' | 'notifications' | 'security' | 'billing' | 'members' | 'audit'>('profile');
 
-  // Local form state editable inside settings
   const [nameVal, setNameVal] = useState(userName);
   const [bizVal, setBizVal] = useState(businessName);
   const [emailVal, setEmailVal] = useState(userEmail);
@@ -1545,7 +1613,7 @@ function SettingsView({
     alert('Profile & business settings saved successfully!');
   };
 
-  const initials = nameVal.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const initials = nameVal.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
 
   return (
     <div className="zapier-settings-layout">
@@ -1581,7 +1649,7 @@ function SettingsView({
               <span className="zapier-profile-avatar-lg">{initials.toLowerCase()}</span>
               <div>
                 <a href="#gravatar" onClick={(e) => { e.preventDefault(); alert('Edit Gravatar flow triggered'); }}>Edit Gravatar ↗</a>
-                <small>Connected via Google / Apple account</small>
+                <small>Connected account</small>
               </div>
             </div>
 
