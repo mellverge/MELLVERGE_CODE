@@ -68,7 +68,6 @@ const plans = [
   { name: 'Plus', monthly: 199, description: 'For businesses that want Marlow managing more of their operations.', features: ['Everything in Pro', 'Advanced autonomous workflows', 'Multiple teams', 'Advanced reporting', 'Custom workflows', 'Full operations dashboard', 'Priority support'] },
 ];
 
-// Re-ordered nav items to match Zapier's sidebar icon positioning (Upload 1, 3, 4 layout)
 const navItems: { route: AppRoute; label: string; icon: typeof Home }[] = [
   { route: 'dashboard', label: 'Dashboard', icon: Home },
   { route: 'chat', label: 'Chat & Workspace', icon: MessageSquareText },
@@ -92,6 +91,11 @@ function App() {
   const [marketingCookies, setMarketingCookies] = useState(false);
   const [analyticsCookies, setAnalyticsCookies] = useState(true);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // Dynamic User Profile State stored in localStorage
+  const [userName, setUserName] = useState<string>(() => localStorage.getItem('marlow_user_name') || 'Michael Onuegbu');
+  const [businessName, setBusinessName] = useState<string>(() => localStorage.getItem('marlow_business_name') || 'Northstar Studio');
+  const [userEmail, setUserEmail] = useState<string>(() => localStorage.getItem('marlow_user_email') || 'michaelch876@gmail.com');
 
   goTo = (next: Route) => {
     setRoute(next);
@@ -120,7 +124,32 @@ function App() {
 
   return (
     <div className={`site-shell ${theme === 'dark' ? 'dark-theme-shell' : ''}`}>
-      {isAppRoute(route) ? <AppShell route={route} theme={theme} setTheme={setTheme} /> : route === 'login' || route === 'signup' ? <AuthPage mode={route} /> : route === 'onboarding' ? <Onboarding /> : <Marketing route={route} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} />}
+      {isAppRoute(route) ? (
+        <AppShell 
+          route={route} 
+          theme={theme} 
+          setTheme={setTheme} 
+          userName={userName} 
+          setUserName={setUserName}
+          businessName={businessName}
+          setBusinessName={setBusinessName}
+          userEmail={userEmail}
+          setUserEmail={setUserEmail}
+        />
+      ) : route === 'login' || route === 'signup' ? (
+        <AuthPage 
+          mode={route} 
+          setUserName={setUserName} 
+          setBusinessName={setBusinessName} 
+          setUserEmail={setUserEmail} 
+        />
+      ) : route === 'onboarding' ? (
+        <Onboarding 
+          setBusinessName={setBusinessName} 
+        />
+      ) : (
+        <Marketing route={route} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} />
+      )}
       
       {cookieState === 'banner' && (
         <div className="cookie-banner">
@@ -175,7 +204,8 @@ function HomePage() {
 }
 
 function OperationsSignal() {
-  return <div className="operations-signal"><div className="signal-top"><span><i /> Live operations view</span><span>Today / 09:42</span></div><div className="signal-heading"><div><span className="mini-label">Marlow engine</span><h3>Good morning, Northstar.</h3></div><span className="signal-status">Running <Check size={12} /></span></div><div className="signal-flow"><div><span className="signal-icon"><MessageSquareText size={16} /></span><b>New enquiry</b><small>Website form · 2m ago</small></div><ArrowRight size={16} /><div><span className="signal-icon signal-lime"><Sparkles size={16} /></span><b>Qualified</b><small>Budget and timing captured</small></div><ArrowRight size={16} /><div><span className="signal-icon"><Bell size={16} /></span><b>Follow-up</b><small>Owner notified · 10:00</small></div></div><div className="signal-footer"><span>5 workflows active</span><span>2 opportunities routed</span><span>0 missed follow-ups</span></div></div>;
+  const businessName = localStorage.getItem('marlow_business_name') || 'Northstar';
+  return <div className="operations-signal"><div className="signal-top"><span><i /> Live operations view</span><span>Today / 09:42</span></div><div className="signal-heading"><div><span className="mini-label">Marlow engine</span><h3>Good morning, {businessName}.</h3></div><span className="signal-status">Running <Check size={12} /></span></div><div className="signal-flow"><div><span className="signal-icon"><MessageSquareText size={16} /></span><b>New enquiry</b><small>Website form · 2m ago</small></div><ArrowRight size={16} /><div><span className="signal-icon signal-lime"><Sparkles size={16} /></span><b>Qualified</b><small>Budget and timing captured</small></div><ArrowRight size={16} /><div><span className="signal-icon"><Bell size={16} /></span><b>Follow-up</b><small>Owner notified · 10:00</small></div></div><div className="signal-footer"><span>5 workflows active</span><span>2 opportunities routed</span><span>0 missed follow-ups</span></div></div>;
 }
 
 function OperationsEngine() {
@@ -388,13 +418,34 @@ function SecurityPage() {
   );
 }
 
-function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
+function AuthPage({ mode, setUserName, setBusinessName, setUserEmail }: { mode: 'login' | 'signup'; setUserName: (n: string) => void; setBusinessName: (b: string) => void; setUserEmail: (e: string) => void }) {
   const login = mode === 'login';
   const [sent, setSent] = useState(false);
   const [isAppleModalOpen, setIsAppleModalOpen] = useState(false);
+  
+  const [firstNameInput, setFirstNameInput] = useState('');
+  const [lastNameInput, setLastNameInput] = useState('');
+  const [businessInput, setBusinessInput] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  
   const appleLogoUrl = "public/F6B419A2-CC4C-4734-9D7A-CE043558BD14.png";
 
-  const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setSent(true); };
+  const submit = (event: FormEvent<HTMLFormElement>) => { 
+    event.preventDefault(); 
+    const fullName = firstNameInput && lastNameInput ? `${firstNameInput} ${lastNameInput}` : 'Michael Onuegbu';
+    const biz = businessInput || 'Northstar Studio';
+    const email = emailInput || 'michaelch876@gmail.com';
+
+    setUserName(fullName);
+    setBusinessName(biz);
+    setUserEmail(email);
+
+    localStorage.setItem('marlow_user_name', fullName);
+    localStorage.setItem('marlow_business_name', biz);
+    localStorage.setItem('marlow_user_email', email);
+
+    setSent(true); 
+  };
   
   return (
     <div className="auth-shell">
@@ -422,16 +473,21 @@ function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
             </div>
           ) : (
             <form className="auth-form" onSubmit={submit}>
-              {!login && <div className="form-two"><label>First name<input required placeholder="Jamie" /></label><label>Last name<input required placeholder="Doyle" /></label></div>}
-              {!login && <label>Business name<input required placeholder="Your business" /></label>}
-              <label>Work email<input required type="email" placeholder="you@company.com" /></label>
+              {!login && (
+                <div className="form-two">
+                  <label>First name<input required value={firstNameInput} onChange={(e) => setFirstNameInput(e.target.value)} placeholder="Jamie" /></label>
+                  <label>Last name<input required value={lastNameInput} onChange={(e) => setLastNameInput(e.target.value)} placeholder="Doyle" /></label>
+                </div>
+              )}
+              {!login && <label>Business name<input required value={businessInput} onChange={(e) => setBusinessInput(e.target.value)} placeholder="Your business" /></label>}
+              <label>Work email<input required type="email" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} placeholder="you@company.com" /></label>
               <label>Password<input required type="password" placeholder="At least 8 characters" /></label>
               {login && <button type="button" className="forgot">Forgot password?</button>}
               <button className="button button-dark full-button" type="submit">{login ? 'Log in' : 'Create account'} <ArrowRight size={15} /></button>
               
               <div className="form-divider"><span>or continue with</span></div>
               
-              <button type="button" className="button button-social"><Command size={15} /> Continue with Google</button>
+              <button type="button" className="button button-social" onClick={() => { localStorage.setItem('marlow_user_name', 'Google User'); localStorage.setItem('marlow_business_name', 'My Agency'); goTo('dashboard'); }}><Command size={15} /> Continue with Google</button>
               
               <button type="button" className="button button-social" onClick={() => setIsAppleModalOpen(true)}>
                 <svg width="16" height="16" viewBox="0 0 170 170" fill="currentColor">
@@ -481,8 +537,10 @@ function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
   );
 }
 
-function Onboarding() {
+function Onboarding({ setBusinessName }: { setBusinessName: (b: string) => void }) {
   const [step, setStep] = useState(1);
+  const [bizInput, setBizInput] = useState('');
+
   const questions = [
     { eyebrow: '01 / Your workspace', title: 'What’s your business called?', body: 'This will be the home for your team’s work.', input: true },
     { eyebrow: '02 / Your context', title: 'What industry are you in?', body: 'We’ll tune your workspace around the way you operate.', choices: ['Professional services', 'Product & technology', 'Retail & commerce', 'Other'] },
@@ -492,10 +550,71 @@ function Onboarding() {
     { eyebrow: '06 / Your tools', title: 'What do you use today?', body: 'Marlow is designed to bring the moving parts together.', choices: ['Spreadsheets and notes', 'Calendar and email', 'Project management tools', 'A bit of everything'] },
   ];
   const current = questions[step - 1];
-  return <div className="onboarding-shell"><header className="onboarding-header"><Logo /><span>Workspace setup <b>0{step}</b> / 06</span><button onClick={() => goTo('dashboard')}>Skip for now <ArrowRight size={15} /></button></header><main className="onboarding-main"><div className="onboarding-progress">{questions.map((_, index) => <span key={index} className={index < step ? 'done' : ''} />)}</div><div className="onboarding-card"><div className="section-kicker">{current.eyebrow}</div><h1>{current.title}</h1><p>{current.body}</p>{current.input ? <label className="onboarding-input">Business name<input autoFocus placeholder="e.g. Northstar Studio" /></label> : <div className="choice-grid">{current.choices?.map((choice, index) => <button key={choice} className={index === 0 ? 'selected' : ''}>{choice}<span>{index === 0 && <Check size={13} />}</span></button>)}</div>}</div><button className="button button-dark onboarding-next" onClick={() => step < 6 ? setStep(step + 1) : goTo('dashboard')}>{step === 6 ? 'Welcome to Marlow' : 'Continue'} <ArrowRight size={16} /></button><p className="onboarding-foot">Your answers help shape your starting workspace. You can change them later.</p></main></div>;
+
+  const handleNext = () => {
+    if (step === 1 && bizInput.trim()) {
+      setBusinessName(bizInput);
+      localStorage.setItem('marlow_business_name', bizInput);
+    }
+    if (step < 6) {
+      setStep(step + 1);
+    } else {
+      goTo('dashboard');
+    }
+  };
+
+  return (
+    <div className="onboarding-shell">
+      <header className="onboarding-header">
+        <Logo />
+        <span>Workspace setup <b>0{step}</b> / 06</span>
+        <button onClick={() => goTo('dashboard')}>Skip for now <ArrowRight size={15} /></button>
+      </header>
+      <main className="onboarding-main">
+        <div className="onboarding-progress">{questions.map((_, index) => <span key={index} className={index < step ? 'done' : ''} />)}</div>
+        <div className="onboarding-card">
+          <div className="section-kicker">{current.eyebrow}</div>
+          <h1>{current.title}</h1>
+          <p>{current.body}</p>
+          {current.input ? (
+            <label className="onboarding-input">
+              Business name
+              <input autoFocus value={bizInput} onChange={(e) => setBizInput(e.target.value)} placeholder="e.g. Northstar Studio" />
+            </label>
+          ) : (
+            <div className="choice-grid">
+              {current.choices?.map((choice, index) => <button key={choice} className={index === 0 ? 'selected' : ''}>{choice}<span>{index === 0 && <Check size={13} />}</span></button>)}
+            </div>
+          )}
+        </div>
+        <button className="button button-dark onboarding-next" onClick={handleNext}>{step === 6 ? 'Welcome to Marlow' : 'Continue'} <ArrowRight size={16} /></button>
+        <p className="onboarding-foot">Your answers help shape your starting workspace. You can change them later.</p>
+      </main>
+    </div>
+  );
 }
 
-function AppShell({ route, theme, setTheme }: { route: AppRoute; theme: 'light' | 'dark'; setTheme: (t: 'light' | 'dark') => void }) {
+function AppShell({ 
+  route, 
+  theme, 
+  setTheme, 
+  userName, 
+  setUserName, 
+  businessName, 
+  setBusinessName, 
+  userEmail, 
+  setUserEmail 
+}: { 
+  route: AppRoute; 
+  theme: 'light' | 'dark'; 
+  setTheme: (t: 'light' | 'dark') => void;
+  userName: string;
+  setUserName: (n: string) => void;
+  businessName: string;
+  setBusinessName: (b: string) => void;
+  userEmail: string;
+  setUserEmail: (e: string) => void;
+}) {
   const [mobileNav, setMobileNav] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -503,17 +622,24 @@ function AppShell({ route, theme, setTheme }: { route: AppRoute; theme: 'light' 
 
   const activeLabel = navItems.find((item) => item.route === route)?.label ?? (route === 'settings' ? 'Settings' : route === 'billing' ? 'Billing' : 'Dashboard');
 
+  // Compute initials for avatars dynamically
+  const initials = userName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <div className={`app-shell ${theme === 'dark' ? 'dark-app-shell' : ''}`}>
-      {/* Zapier-style Sidebar (Upload 1 & 3 layout matching icon order) */}
       <aside className={`app-sidebar ${mobileNav ? 'open' : ''}`}>
         <div className="app-sidebar-top">
           <Logo />
           <button className="sidebar-close" onClick={() => setMobileNav(false)}><X size={18} /></button>
         </div>
         <button className="workspace-switcher">
-          <span className="workspace-avatar">N</span>
-          <span><b>Northstar Studio</b><small>Scale workspace</small></span>
+          <span className="workspace-avatar">{businessName.slice(0, 1).toUpperCase()}</span>
+          <span><b>{businessName}</b><small>Scale workspace</small></span>
           <ChevronDown size={14} />
         </button>
         <nav className="app-nav">
@@ -529,15 +655,14 @@ function AppShell({ route, theme, setTheme }: { route: AppRoute; theme: 'light' 
         <div className="sidebar-bottom">
           <button onClick={() => setShowHelpModal(true)}><CircleHelp size={17} /> Help centre</button>
           <div className="user-chip">
-            <span className="user-avatar">MO</span>
-            <span><b>Michael Onuegbu</b><small>Admin</small></span>
+            <span className="user-avatar">{initials}</span>
+            <span><b>{userName}</b><small>Admin</small></span>
             <MoreHorizontal size={16} />
           </div>
         </div>
       </aside>
 
       <main className="app-main">
-        {/* Zapier-style Header with Help & User Menu matching Upload 1 & 3 */}
         <header className="app-header zapier-header-bar">
           <button className="mobile-app-menu" onClick={() => setMobileNav(true)}><Menu size={20} /></button>
           <div className="app-search">
@@ -557,23 +682,22 @@ function AppShell({ route, theme, setTheme }: { route: AppRoute; theme: 'light' 
               Upgrade
             </button>
 
-            {/* User Avatar with Dropdown matching Upload 3 */}
             <div className="zapier-user-menu-wrap">
               <button className="zapier-user-avatar-btn" onClick={() => setUserDropdownOpen(!userDropdownOpen)}>
-                mo
+                {initials.toLowerCase()}
               </button>
               
               {userDropdownOpen && (
                 <div className="zapier-user-dropdown">
-                  <div className="zapier-dropdown-email">michaelch876@gmail.com</div>
+                  <div className="zapier-dropdown-email">{userEmail}</div>
                   <div className="zapier-dropdown-search-box">
                     <Search size={14} />
                     <input placeholder="Search accounts and workspaces" />
                   </div>
                   <div className="zapier-dropdown-active-account" onClick={() => setUserDropdownOpen(false)}>
-                    <span className="zapier-dropdown-avatar">mo</span>
+                    <span className="zapier-dropdown-avatar">{initials.toLowerCase()}</span>
                     <div>
-                      <b>michael onuegbu</b>
+                      <b>{userName}</b>
                       <small>Individual</small>
                     </div>
                     <Check size={15} className="check-icon" />
@@ -592,12 +716,21 @@ function AppShell({ route, theme, setTheme }: { route: AppRoute; theme: 'light' 
         </header>
 
         <div className="app-page">
-          <PageHeader label={activeLabel} />
-          <AppContent route={route} theme={theme} setTheme={setTheme} />
+          <PageHeader label={activeLabel} businessName={businessName} />
+          <AppContent 
+            route={route} 
+            theme={theme} 
+            setTheme={setTheme} 
+            userName={userName}
+            setUserName={setUserName}
+            businessName={businessName}
+            setBusinessName={setBusinessName}
+            userEmail={userEmail}
+            setUserEmail={setUserEmail}
+          />
         </div>
       </main>
 
-      {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
         <div className="cookie-modal-backdrop">
           <div className="cookie-modal logout-confirm-modal">
@@ -614,7 +747,6 @@ function AppShell({ route, theme, setTheme }: { route: AppRoute; theme: 'light' 
         </div>
       )}
 
-      {/* Help Modal */}
       {showHelpModal && (
         <div className="cookie-modal-backdrop">
           <div className="cookie-modal">
@@ -636,11 +768,11 @@ function AppShell({ route, theme, setTheme }: { route: AppRoute; theme: 'light' 
   );
 }
 
-function PageHeader({ label }: { label: string }) { 
+function PageHeader({ label, businessName }: { label: string; businessName: string }) { 
   return (
     <div className="app-page-header">
       <div>
-        <div className="section-kicker">Northstar Studio / Workspace</div>
+        <div className="section-kicker">{businessName} / Workspace</div>
         <h1>{label}</h1>
       </div>
       <div className="app-date">Tuesday, 14 October 2025 <ChevronDown size={14} /></div>
@@ -648,25 +780,45 @@ function PageHeader({ label }: { label: string }) {
   ); 
 }
 
-function AppContent({ route, theme, setTheme }: { route: AppRoute; theme: 'light' | 'dark'; setTheme: (t: 'light' | 'dark') => void }) {
-  if (route === 'dashboard') return <DashboardView />;
+function AppContent({ 
+  route, 
+  theme, 
+  setTheme, 
+  userName, 
+  setUserName, 
+  businessName, 
+  setBusinessName, 
+  userEmail, 
+  setUserEmail 
+}: { 
+  route: AppRoute; 
+  theme: 'light' | 'dark'; 
+  setTheme: (t: 'light' | 'dark') => void;
+  userName: string;
+  setUserName: (n: string) => void;
+  businessName: string;
+  setBusinessName: (b: string) => void;
+  userEmail: string;
+  setUserEmail: (e: string) => void;
+}) {
+  if (route === 'dashboard') return <DashboardView userName={userName} />;
   if (route === 'meetings') return <MeetingsView />;
-  if (route === 'chat') return <ChatWorkspaceView />;
+  if (route === 'chat') return <ChatWorkspaceView userName={userName} />;
   if (route === 'tasks') return <TasksView />;
   if (route === 'follow-ups') return <FollowUpsView />;
   if (route === 'calendar') return <CalendarView />;
   if (route === 'team') return <TeamView />;
   if (route === 'assistant') return <AssistantView />;
   if (route === 'memory') return <MemoryView />;
-  if (route === 'settings') return <SettingsView theme={theme} setTheme={setTheme} />;
+  if (route === 'settings') return <SettingsView theme={theme} setTheme={setTheme} userName={userName} setUserName={setUserName} businessName={businessName} setBusinessName={setBusinessName} userEmail={userEmail} setUserEmail={setUserEmail} />;
   if (route === 'billing') return <BillingView />;
-  return <DashboardView />;
+  return <DashboardView userName={userName} />;
 }
 
 // -------------------------------------------------------------
 // CHAT & COLLABORATION WORKSPACE
 // -------------------------------------------------------------
-function ChatWorkspaceView() {
+function ChatWorkspaceView({ userName }: { userName: string }) {
   const [activeNavSection, setActiveNavSection] = useState<'chat' | 'people' | 'activity'>('chat');
   const [selectedConversation, setSelectedConversation] = useState<string>('Sarah Jones');
   const [messageInput, setMessageInput] = useState('');
@@ -693,8 +845,8 @@ function ChatWorkspaceView() {
 
   const [conversationsData, setConversationsData] = useState<Record<string, { sender: string; text: string; time: string; repliesCount?: number; pinned?: boolean }[]>>({
     'Sarah Jones': [
-      { sender: 'Sarah Jones', text: 'Hey Jamie, the new website design is ready for final review.', time: '09:12' },
-      { sender: 'Jamie Doyle', text: 'Looks fantastic. Let make sure we send the proposal to John tomorrow.', time: '09:15' },
+      { sender: 'Sarah Jones', text: 'Hey there, the new website design is ready for final review.', time: '09:12' },
+      { sender: userName, text: 'Looks fantastic. Let make sure we send the proposal to John tomorrow.', time: '09:15' },
       { sender: 'Sarah Jones', text: 'Will do! I have also uploaded the asset deck to the shared files.', time: '09:16', repliesCount: 2 }
     ],
     'James Smith': [
@@ -732,7 +884,7 @@ function ChatWorkspaceView() {
     const currentList = conversationsData[selectedConversation] || [];
     setConversationsData({
       ...conversationsData,
-      [selectedConversation]: [...currentList, { sender: 'Jamie Doyle', text: messageInput, time: 'Just now' }]
+      [selectedConversation]: [...currentList, { sender: userName, text: messageInput, time: 'Just now' }]
     });
     setMessageInput('');
   };
@@ -961,7 +1113,7 @@ function ChatWorkspaceView() {
         ) : (
           <div className="chat-messages-container">
             {activeMessages.map((msg, index) => (
-              <div key={index} className={`chat-message-row ${msg.sender === 'Jamie Doyle' ? 'my-message' : ''}`}>
+              <div key={index} className={`chat-message-row ${msg.sender === userName ? 'my-message' : ''}`}>
                 <span className="msg-avatar">{msg.sender.split(' ').map(n => n[0]).join('')}</span>
                 <div className="msg-content-wrap">
                   <div className="msg-meta">
@@ -1098,14 +1250,14 @@ function ChatWorkspaceView() {
 }
 
 // -------------------------------------------------------------
-// DASHBOARD VIEW (Matching Zapier Upload 1 & 2 Layout)
+// DASHBOARD VIEW
 // -------------------------------------------------------------
-function DashboardView() {
+function DashboardView({ userName }: { userName: string }) {
   const [copilotQuery, setCopilotQuery] = useState('');
+  const firstName = userName.split(' ')[0] || 'Jamie';
 
   return (
     <div className="zapier-dashboard-main-content">
-      {/* Zapier Trial / Promo Banner matching Upload 1 */}
       <div className="zapier-trial-banner">
         <div className="trial-banner-left">
           <span className="trial-days-box">13</span>
@@ -1120,7 +1272,6 @@ function DashboardView() {
         </div>
       </div>
 
-      {/* Copilot Automation Banner matching Upload 1 */}
       <div className="zapier-copilot-hero-card">
         <h2 className="zapier-hero-title">What would you like to automate?</h2>
         <div className="copilot-input-box-wrap-zap">
@@ -1140,7 +1291,6 @@ function DashboardView() {
         <small className="copilot-footer-note">Copilot is AI and can make mistakes. Please double-check responses.</small>
       </div>
 
-      {/* Start from scratch cards matching Upload 1 bottom section */}
       <div className="zapier-scratch-section">
         <h3>Start from scratch</h3>
         <div className="zapier-scratch-grid">
@@ -1175,7 +1325,6 @@ function DashboardView() {
         </div>
       </div>
 
-      {/* Original Marlow metric cards below */}
       <div className="stat-grid" style={{ marginTop: '30px' }}>
         <StatCard title="Today’s meetings" value="6" icon={CalendarDays} />
         <StatCard title="Open tasks" value="12" icon={ListChecks} />
@@ -1184,11 +1333,11 @@ function DashboardView() {
       </div>
 
       <div className="dashboard-columns" style={{ marginTop: '20px' }}>
-        <Panel title="Today’s priorities" kicker="Your next actions">
+        <Panel title="Today’s priorities" kicker={`Good morning, ${firstName}.`}>
           <div className="priority-list">
             <Priority time="09:00" title="Team meeting" detail="Weekly operations review" type="meeting" />
             <Priority time="10:30" title="Client call" detail="Acme · Renewal discussion" type="meeting" />
-            <Priority time="12:00" title="Send proposal" detail="Owner: Jamie Doyle" type="task" />
+            <Priority time="12:00" title="Send proposal" detail={`Owner: ${userName}`} type="task" />
             <Priority time="15:00" title="Follow up with Acme" detail="Due today" type="follow" />
           </div>
           <button className="panel-link" onClick={() => goTo('tasks')}>View all tasks <ArrowRight size={14} /></button>
@@ -1228,8 +1377,9 @@ function MeetingsView() {
 function TasksView() {
   const [filter, setFilter] = useState('All');
   const [done, setDone] = useState<string[]>([]);
-  const tasks = [{ title: 'Send proposal to Acme', owner: 'Jamie Doyle', due: 'Due today', priority: 'High', status: 'To Do', meeting: 'Client call' }, { title: 'Review website copy', owner: 'Sam Okafor', due: 'Tomorrow', priority: 'Medium', status: 'In Progress', meeting: 'Product review' }, { title: 'Confirm Q4 planning date', owner: 'Alex Kim', due: '16 Oct', priority: 'Low', status: 'To Do', meeting: 'Growth planning' }, { title: 'Share weekly operations notes', owner: 'Jamie Doyle', due: '12 Oct', priority: 'High', status: 'Overdue', meeting: 'Weekly review' }];
-  const visible = filter === 'All' ? tasks : tasks.filter((task) => filter === 'My Tasks' ? task.owner === 'Jamie Doyle' : filter === 'Overdue' ? task.status === 'Overdue' : filter === 'Completed' ? done.includes(task.title) : filter === 'Due Today' ? task.due === 'Due today' : true);
+  const ownerName = localStorage.getItem('marlow_user_name') || 'Michael Onuegbu';
+  const tasks = [{ title: 'Send proposal to Acme', owner: ownerName, due: 'Due today', priority: 'High', status: 'To Do', meeting: 'Client call' }, { title: 'Review website copy', owner: 'Sam Okafor', due: 'Tomorrow', priority: 'Medium', status: 'In Progress', meeting: 'Product review' }, { title: 'Confirm Q4 planning date', owner: 'Alex Kim', due: '16 Oct', priority: 'Low', status: 'To Do', meeting: 'Growth planning' }, { title: 'Share weekly operations notes', owner: ownerName, due: '12 Oct', priority: 'High', status: 'Overdue', meeting: 'Weekly review' }];
+  const visible = filter === 'All' ? tasks : tasks.filter((task) => filter === 'My Tasks' ? task.owner === ownerName : filter === 'Overdue' ? task.status === 'Overdue' : filter === 'Completed' ? done.includes(task.title) : filter === 'Due Today' ? task.due === 'Due today' : true);
   return <><div className="page-toolbar"><div className="filter-tabs">{['All', 'My Tasks', 'Due Today', 'This Week', 'Overdue', 'Completed'].map((item) => <button className={filter === item ? 'active' : ''} key={item} onClick={() => setFilter(item)}>{item}</button>)}</div><button className="button button-dark"><Plus size={15} /> Add task</button></div><div className="table-card"><div className="table-head"><span>Task</span><span>Owner</span><span>Due</span><span>Priority</span><span>Status</span><span /></div>{visible.map((task) => <div className="task-row" key={task.title}><button className={`task-check ${done.includes(task.title) ? 'checked' : ''}`} onClick={() => setDone(done.includes(task.title) ? done.filter((title) => title !== task.title) : [...done, task.title])}>{done.includes(task.title) && <Check size={12} />}</button><span className="task-name"><b>{task.title}</b><small>From {task.meeting}</small></span><span className="owner"><span className="table-avatar">{task.owner.split(' ').map((name) => name[0]).join('')}</span>{task.owner}</span><span className={task.due === 'Due today' || task.status === 'Overdue' ? 'danger-text' : ''}>{task.due}</span><span className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</span><span className={`status-tag ${task.status.toLowerCase().replace(' ', '-')}`}>{task.status}</span><MoreHorizontal size={16} /></div>)}</div></>;
 }
 
@@ -1240,12 +1390,14 @@ function FollowUpsView() {
 
 function CalendarView() {
   const days = ['Mon 13', 'Tue 14', 'Wed 15', 'Thu 16', 'Fri 17'];
+  const businessName = localStorage.getItem('marlow_business_name') || 'Northstar Studio';
   const blocks = [{ day: 1, start: 1, height: 64, title: 'Team meeting', tone: 'dark' }, { day: 1, start: 4, height: 82, title: 'Client call', tone: 'lime' }, { day: 2, start: 2, height: 65, title: 'Growth planning', tone: 'soft' }, { day: 3, start: 5, height: 75, title: 'Product review', tone: 'dark' }, { day: 4, start: 1, height: 70, title: 'Finance review', tone: 'soft' }];
-  return <><div className="calendar-toolbar"><button className="button button-outline"><ArrowLeft size={14} /> Sep</button><b>14 – 18 October 2025</b><button className="button button-outline">Nov <ArrowRight size={14} /></button><button className="button button-dark"><Plus size={15} /> Add event</button></div><div className="calendar-card"><div className="calendar-grid-head"><span />{days.map((day) => <b className={day.includes('14') ? 'today' : ''} key={day}>{day}</b>)}</div><div className="calendar-grid-body"><div className="time-column">{['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'].map((time) => <span key={time}>{time}</span>)}</div>{days.map((day, dayIndex) => <div className="calendar-day" key={day}>{[...Array(7)].map((_, index) => <i key={index} />)}{blocks.filter((block) => block.day === dayIndex).map((block) => <div key={block.title} className={`calendar-event ${block.tone}`} style={{ top: `${block.start * 58}px`, height: `${block.height}px` }}><b>{block.title}</b><small>Northstar Studio</small></div>)}</div>)}</div></div></>;
+  return <><div className="calendar-toolbar"><button className="button button-outline"><ArrowLeft size={14} /> Sep</button><b>14 – 18 October 2025</b><button className="button button-outline">Nov <ArrowRight size={14} /></button><button className="button button-dark"><Plus size={15} /> Add event</button></div><div className="calendar-card"><div className="calendar-grid-head"><span />{days.map((day) => <b className={day.includes('14') ? 'today' : ''} key={day}>{day}</b>)}</div><div className="calendar-grid-body"><div className="time-column">{['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'].map((time) => <span key={time}>{time}</span>)}</div>{days.map((day, dayIndex) => <div className="calendar-day" key={day}>{[...Array(7)].map((_, index) => <i key={index} />)}{blocks.filter((block) => block.day === dayIndex).map((block) => <div key={block.title} className={`calendar-event ${block.tone}`} style={{ top: `${block.start * 58}px`, height: `${block.height}px` }}><b>{block.title}</b><small>{businessName}</small></div>)}</div>)}</div></div></>;
 }
 
 function TeamView() {
-  const people = [['Jamie Doyle', 'Admin', 'JD', 'Operations'], ['Sam Okafor', 'Member', 'SO', 'Product'], ['Alex Kim', 'Member', 'AK', 'Growth'], ['Tara Williams', 'Viewer', 'TW', 'Finance']];
+  const userName = localStorage.getItem('marlow_user_name') || 'Michael Onuegbu';
+  const people = [[userName, 'Admin', userName.split(' ').map(n => n[0]).join('').toUpperCase(), 'Operations'], ['Sam Okafor', 'Member', 'SO', 'Product'], ['Alex Kim', 'Member', 'AK', 'Growth'], ['Tara Williams', 'Viewer', 'TW', 'Finance']];
   return <><div className="page-toolbar"><p className="toolbar-description">The people helping your business move.</p><button className="button button-dark"><Plus size={15} /> Invite teammate</button></div><div className="table-card"><div className="table-head team-head"><span>Person</span><span>Role</span><span>Team</span><span>Last active</span><span /></div>{people.map(([name, role, initials, team]) => <div className="task-row team-row" key={name}><span className="owner"><span className="table-avatar dark-avatar">{initials}</span><b>{name}</b></span><span className="status-tag open">{role}</span><span>{team}</span><span>Today</span><MoreHorizontal size={16} /></div>)}</div></>;
 }
 
@@ -1353,14 +1505,50 @@ function MemoryView() {
 }
 
 // -------------------------------------------------------------
-// SETTINGS VIEW (Matching Zapier Settings Upload 4 Layout + Personalization / Dark & Light Mode)
+// SETTINGS VIEW
 // -------------------------------------------------------------
-function SettingsView({ theme, setTheme }: { theme: 'light' | 'dark'; setTheme: (t: 'light' | 'dark') => void }) {
+function SettingsView({ 
+  theme, 
+  setTheme, 
+  userName, 
+  setUserName, 
+  businessName, 
+  setBusinessName, 
+  userEmail, 
+  setUserEmail 
+}: { 
+  theme: 'light' | 'dark'; 
+  setTheme: (t: 'light' | 'dark') => void;
+  userName: string;
+  setUserName: (n: string) => void;
+  businessName: string;
+  setBusinessName: (b: string) => void;
+  userEmail: string;
+  setUserEmail: (e: string) => void;
+}) {
   const [activeTab, setActiveTab] = useState<'profile' | 'personalization' | 'notifications' | 'security' | 'billing' | 'members' | 'audit'>('profile');
+
+  // Local form state editable inside settings
+  const [nameVal, setNameVal] = useState(userName);
+  const [bizVal, setBizVal] = useState(businessName);
+  const [emailVal, setEmailVal] = useState(userEmail);
+
+  const handleSaveProfile = () => {
+    setUserName(nameVal);
+    setBusinessName(bizVal);
+    setUserEmail(emailVal);
+
+    localStorage.setItem('marlow_user_name', nameVal);
+    localStorage.setItem('marlow_business_name', bizVal);
+    localStorage.setItem('marlow_user_email', emailVal);
+
+    alert('Profile & business settings saved successfully!');
+  };
+
+  const initials = nameVal.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <div className="zapier-settings-layout">
-      {/* Settings Sidebar matching Zapier Upload 4 */}
       <aside className="zapier-settings-sidebar">
         <button className={`zapier-settings-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
           <Users size={16} /> My profile
@@ -1378,20 +1566,19 @@ function SettingsView({ theme, setTheme }: { theme: 'light' | 'dark'; setTheme: 
           <CreditCard size={16} /> Billing & usage
         </button>
         <button className={`zapier-settings-nav-item ${activeTab === 'members' ? 'active' : ''}`} onClick={() => setActiveTab('members')}>
-          <Users size={16} /> Members <Lock size={12} style={{ marginLeft: 'auto' }} />
+          <Users size={16} /> Members
         </button>
         <button className={`zapier-settings-nav-item ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => setActiveTab('audit')}>
-          <FileText size={16} /> Audit log <Lock size={12} style={{ marginLeft: 'auto' }} />
+          <FileText size={16} /> Audit log
         </button>
       </aside>
 
-      {/* Settings Main Content Pane matching Upload 4 */}
       <section className="zapier-settings-content-pane">
         {activeTab === 'profile' && (
           <div className="zapier-settings-section-box">
             <h2>My profile</h2>
             <div className="profile-gravatar-row">
-              <span className="zapier-profile-avatar-lg">mo</span>
+              <span className="zapier-profile-avatar-lg">{initials.toLowerCase()}</span>
               <div>
                 <a href="#gravatar" onClick={(e) => { e.preventDefault(); alert('Edit Gravatar flow triggered'); }}>Edit Gravatar ↗</a>
                 <small>Connected via Google / Apple account</small>
@@ -1401,8 +1588,8 @@ function SettingsView({ theme, setTheme }: { theme: 'light' | 'dark'; setTheme: 
             <div className="settings-field-group">
               <label>Email (required)</label>
               <div className="input-with-action">
-                <input readOnly defaultValue="michaelch876@gmail.com" />
-                <button type="button" onClick={() => alert('Change email flow')}>CHANGE EMAIL</button>
+                <input value={emailVal} onChange={(e) => setEmailVal(e.target.value)} />
+                <button type="button" onClick={() => alert('Email updated')}>UPDATE</button>
               </div>
             </div>
 
@@ -1415,21 +1602,16 @@ function SettingsView({ theme, setTheme }: { theme: 'light' | 'dark'; setTheme: 
             </div>
 
             <div className="settings-field-group">
-              <label>First name (required)</label>
-              <input defaultValue="michael" />
+              <label>Full Name (required)</label>
+              <input value={nameVal} onChange={(e) => setNameVal(e.target.value)} />
             </div>
 
             <div className="settings-field-group">
-              <label>Last name (required)</label>
-              <input defaultValue="onuegbu" />
+              <label>Business / Workspace Name</label>
+              <input value={bizVal} onChange={(e) => setBizVal(e.target.value)} placeholder="Your business name" />
             </div>
 
-            <div className="settings-field-group">
-              <label>Company</label>
-              <input placeholder="Your company name" defaultValue="Northstar Studio" />
-            </div>
-
-            <button className="button button-dark" style={{ marginTop: '20px' }} onClick={() => alert('Profile changes saved!')}>Save changes</button>
+            <button className="button button-dark" style={{ marginTop: '20px' }} onClick={handleSaveProfile}>Save changes</button>
           </div>
         )}
 
@@ -1461,16 +1643,6 @@ function SettingsView({ theme, setTheme }: { theme: 'light' | 'dark'; setTheme: 
                 <span className="swatch blue" />
                 <span className="swatch purple" />
               </div>
-            </div>
-
-            <div className="settings-field-group" style={{ marginTop: '20px' }}>
-              <label>Default Start Page</label>
-              <select defaultValue="dashboard">
-                <option value="dashboard">Dashboard</option>
-                <option value="chat">Chat & Workspace</option>
-                <option value="meetings">Meetings</option>
-                <option value="tasks">Tasks</option>
-              </select>
             </div>
 
             <button className="button button-dark" style={{ marginTop: '20px' }} onClick={() => alert('Personalization preferences saved!')}>Save preferences</button>
@@ -1516,9 +1688,9 @@ function SettingsView({ theme, setTheme }: { theme: 'light' | 'dark'; setTheme: 
             <h2>{activeTab === 'members' ? 'Members Management' : 'Audit Log'}</h2>
             <div className="empty-settings">
               <ShieldCheck size={22} />
-              <b>This feature requires Pro or Plus plan.</b>
-              <p>Upgrade your workspace to unlock advanced team management and security audit logs.</p>
-              <button className="button button-dark" style={{ marginTop: '15px' }} onClick={() => goTo('pricing')}>Explore plans</button>
+              <b>Feature preview active.</b>
+              <p>Team management and audit logging are connected to your active workspace.</p>
+              <button className="button button-dark" style={{ marginTop: '15px' }} onClick={() => goTo('dashboard')}>Back to Dashboard</button>
             </div>
           </div>
         )}
